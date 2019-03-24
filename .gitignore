@@ -1,0 +1,10 @@
+.DS_Store
+
+### Django ###
+*.log
+*.pot
+*.pyc
+
+__pycache__/
+
+.idea/
