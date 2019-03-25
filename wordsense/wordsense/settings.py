@@ -38,9 +38,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ws_web',
+    'rest_framework',
+    'corsheaders'
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', # new
+    'django.middleware.common.CommonMiddleware', # new
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +59,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = (
+    'localhost:3000/'
+)
 
 ROOT_URLCONF = 'wordsense.urls'
 
@@ -80,9 +94,16 @@ DATABASES = {
         'NAME': 'wordsense',
         'USER': 'postgres',
         'PASSWORD': ''
+    },
+    'childesdb': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'childesdb',
+        'USER': 'root',
+        'PASSWORD': ''
     }
 }
 
+DATABASE_ROUTERS = ['ws_web.db_routers.DatabaseRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
