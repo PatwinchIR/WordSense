@@ -69,8 +69,8 @@ class ListUtterance(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         transcript_id = self.request.query_params['transcript_id']
-        queryset = Utterance.objects.get_queryset().filter(transcript_id=transcript_id)
-        serializer = UtteranceSerializer(queryset, many=True)
+        self.queryset = Utterance.objects.get_queryset().filter(transcript_id=transcript_id)
+        serializer = UtteranceSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
 

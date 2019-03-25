@@ -39,14 +39,26 @@ class TranscriptSerializer(serializers.ModelSerializer):
         model = Transcript
 
 
+class TokenSerializer(serializers.Serializer):
+    word = serializers.CharField(max_length=255)
+    pos = serializers.CharField(max_length=255)
+
+
 class UtteranceSerializer(serializers.ModelSerializer):
+    gloss_pos = serializers.SerializerMethodField()
+
     class Meta:
         fields = (
             'id',
             'order',
-            'gloss',
-            'stem',
+            'gloss_pos',
             'part_of_speech',
+            'speaker_role',
         )
         model = Utterance
 
+    def get_gloss_pos(self, obj):
+        gloss_pos = TokenSerializer(data=[{'word': word, 'pos': pos} for word, pos in zip(obj.gloss.split(' '), obj.part_of_speech.split(' '))], many=True)
+        if gloss_pos.is_valid():
+            return gloss_pos.validated_data
+        return gloss_pos.initial_data

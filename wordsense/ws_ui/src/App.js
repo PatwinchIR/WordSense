@@ -13,7 +13,7 @@ class App extends Component {
         utterances: [],
         selected_collection: '',
         selected_corpus: '',
-        selected_transcripts: ''
+        selected_transcript: ''
     };
 
     this.handleCollectionChange = this.handleCollectionChange.bind(this);
@@ -145,10 +145,12 @@ class App extends Component {
             <br />
         <div>
             {this.state.utterances.map(
-                item => (
-                    <span>
-                        {item.id}: {item.gloss}
-                    </span>
+                item => ([<span>
+                    {item.speaker_role}:
+                        {item.gloss_pos.map(
+                            word_pos => (<span> {word_pos.word}</span>)
+                        )}
+                    </span>, <br />]
                 )
             )}
         </div>
