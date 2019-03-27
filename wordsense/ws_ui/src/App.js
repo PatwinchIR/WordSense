@@ -11,6 +11,7 @@ class App extends Component {
         corpora: [],
         transcripts: [],
         utterances: [],
+        senses: [],
         selected_collection: '',
         selected_corpus: '',
         selected_transcript: ''
@@ -76,6 +77,18 @@ class App extends Component {
     }
   }
 
+  async loadSensesExxamplesForWord(lemma, pos) {
+    try {
+        const res = await fetch(`http://127.0.0.1:8000/api/get_senses?lemma=${lemma}&pos=${pos}`);
+        const senses = await res.json();
+        this.setState({
+            senses: senses
+        });
+    } catch (e) {
+        console.log(e);
+    }
+  }
+
   handleCollectionChange(event) {
       const collection_id = event.target.value;
       this.loadCorporaForSelectedCollection(collection_id);
@@ -94,12 +107,23 @@ class App extends Component {
       this.setState({selected_transcript: transcript_id});
   }
 
+  handleWordClick(word_pos) {
+    this.loadSensesExxamplesForWord(word_pos.lemma, word_pos.pos);
+  }
+
   handleSubmit(event) {
     alert('Your favorite flavor is: ' + this.state.sc);
   }
 
+
+
   render() {
+    const isSenses = this.state.senses && this.state.senses.length > 0;
+
     return (
+        [<div>
+            {isSenses && <HiddenBox senses={this.state.senses}/>}
+        </div>,
         <div>
 
         <form onSubmit={this.handleSubmit}>
@@ -145,18 +169,65 @@ class App extends Component {
             <br />
         <div>
             {this.state.utterances.map(
-                item => ([<span>
-                    {item.speaker_role}:
-                        {item.gloss_pos.map(
-                            word_pos => (<span> {word_pos.word}</span>)
-                        )}
-                    </span>, <br />]
+                item => (
+                    [
+                        <span> {item.speaker_role}:
+
+                            {item.gloss_pos.map(
+                                word_pos => {
+                                    return word_pos.pos === 'n' ||
+                                        word_pos.pos === 'v' ||
+                                        word_pos.pos === 'adv' ||
+                                        word_pos.pos === 'adj' ?
+                                        (
+                                            <span onClick={() => this.handleWordClick(word_pos)} style={{cursor:'pointer', color:'red'}}>{word_pos.word} </span>
+                                        ) :
+                                        (
+                                            <span>{word_pos.word} </span>
+                                        )
+                                }
+                                )}
+                        </span>, <br/>
+                    ]
                 )
-            )}
+            )
+        }
         </div>
-      </div>
+      </div>]
     );
   }
+}
+
+class HiddenBox extends React.Component {
+    render () {
+        return <div className='senses'>
+                                                    {
+                                                        this.props.senses.map(
+                                                            sense_example => (
+                                                                [
+                                                                    <span style={{color:'blue'}}>
+                                                                        {sense_example.sense}
+                                                                    </span>, <br/>,
+                                                                    <div>
+                                                                        {
+                                                                            sense_example.examples.map(
+                                                                                example =>
+                                                                                    [
+                                                                                        <span style={{backgroundColor:'yellow'}}>
+                                                                                            {example}
+                                                                                        </span>, <br/>
+                                                                                    ]
+                                                                            )
+                                                                        }
+                                                                    </div>
+                                                                ]
+                                                            )
+                                                        )
+                                                    }
+                                                </div>
+    }
+
+
 }
 
 export default App;

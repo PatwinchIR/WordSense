@@ -36,8 +36,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from ws_web.models import Collection, Corpus, Transcript, Utterance
-from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer
-
+from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, SenseSerializer
+from nltk.corpus import wordnet as wn
 
 class ListCollection(generics.ListAPIView):
     queryset = Collection.objects.all()
@@ -71,6 +71,17 @@ class ListUtterance(generics.ListAPIView):
         transcript_id = self.request.query_params['transcript_id']
         self.queryset = Utterance.objects.get_queryset().filter(transcript_id=transcript_id)
         serializer = UtteranceSerializer(self.queryset, many=True)
+        return Response(serializer.data)
+
+
+class ListSenses(generics.ListAPIView):
+    serializer_class = SenseSerializer
+    queryset = ''
+
+    def list(self, request, *args, **kwargs):
+        synsets = wn.synsets(self.request.query_params['lemma'], pos=self.request.query_params['pos'])
+        serializer = SenseSerializer(synsets, many=True)
+        print(serializer.data)
         return Response(serializer.data)
 
 
