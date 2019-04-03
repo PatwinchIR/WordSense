@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance
+from ws_web.models import Collection, Corpus, Transcript, Utterance, Token
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -40,14 +40,17 @@ class TranscriptSerializer(serializers.ModelSerializer):
 
 
 class SenseSerializer(serializers.Serializer):
+    offset = serializers.SerializerMethodField()
     sense = serializers.SerializerMethodField()
     examples = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('sense', 'examples')
+        fields = ('offset', 'sense', 'examples')
+
+    def get_offset(self, obj):
+        return obj.offset()
 
     def get_sense(self, obj):
-        print(obj.definition())
         return obj.definition()
 
     def get_examples(self, obj):
@@ -58,6 +61,17 @@ class TokenSerializer(serializers.Serializer):
     word = serializers.CharField(max_length=255)
     pos = serializers.CharField(max_length=255)
     lemma = serializers.CharField(max_length=255)
+
+
+class TokenSerializer1(serializers.ModelSerializer):
+    class Meta:
+        model = Token
+        fields = (
+            'gloss',
+            'part_of_speech',
+            'utterance_id',
+            'speaker_role'
+        )
 
 
 class UtteranceSerializer(serializers.ModelSerializer):

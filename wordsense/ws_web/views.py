@@ -35,9 +35,14 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance
-from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, SenseSerializer
+from ws_web.models import Collection, Corpus, Transcript, Utterance, Token
+from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
+    SenseSerializer, TokenSerializer1
 from nltk.corpus import wordnet as wn
+from nltk.stem import WordNetLemmatizer
+
+lemmatizer = WordNetLemmatizer()
+
 
 class ListCollection(generics.ListAPIView):
     queryset = Collection.objects.all()
@@ -48,7 +53,7 @@ class ListCorpus(generics.ListAPIView):
     serializer_class = CorpusSerializer
 
     def list(self, request, *args, **kwargs):
-        collection_id = self.request.query_params['collection_id']
+        collection_id = request.query_params['collection_id']
         queryset = Corpus.objects.get_queryset().filter(collection_id=collection_id)
         serializer = CorpusSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -58,7 +63,7 @@ class ListTranscript(generics.ListAPIView):
     serializer_class = TranscriptSerializer
 
     def list(self, request, *args, **kwargs):
-        corpus_id = self.request.query_params['corpus_id']
+        corpus_id = request.query_params['corpus_id']
         queryset = Transcript.objects.get_queryset().filter(corpus_id=corpus_id)
         serializer = TranscriptSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -68,9 +73,20 @@ class ListUtterance(generics.ListAPIView):
     serializer_class = UtteranceSerializer
 
     def list(self, request, *args, **kwargs):
-        transcript_id = self.request.query_params['transcript_id']
+        transcript_id = request.query_params['transcript_id']
         self.queryset = Utterance.objects.get_queryset().filter(transcript_id=transcript_id)
         serializer = UtteranceSerializer(self.queryset, many=True)
+        return Response(serializer.data)
+
+
+class ListToken(generics.ListAPIView):
+    serializer_class = TokenSerializer1
+
+    def list(self, request, *args, **kwargs):
+        transcript_id = request.query_params['transcript_id']
+        self.queryset = Token.objects.get_queryset().filter(transcript_id=transcript_id).order_by('utterance_id', 'token_order')
+        serializer = TokenSerializer1(self.queryset, many=True)
+        # print(serializer.data)
         return Response(serializer.data)
 
 
@@ -79,10 +95,22 @@ class ListSenses(generics.ListAPIView):
     queryset = ''
 
     def list(self, request, *args, **kwargs):
-        synsets = wn.synsets(self.request.query_params['lemma'], pos=self.request.query_params['pos'])
+        pos = request.query_params['pos']
+        word = lemmatizer.lemmatize(request.query_params['word'], pos)
+
+        synsets = wn.synsets(word, pos)
         serializer = SenseSerializer(synsets, many=True)
-        print(serializer.data)
         return Response(serializer.data)
+
+
+class ListCreateAnnotation(generics.ListCreateAPIView):
+    queryset = ''
+
+    def list(self, request, *args, **kwargs):
+        pass
+
+    def create(self, request, *args, **kwargs):
+        pass
 
 
 class DetailCollection(generics.RetrieveUpdateDestroyAPIView):

@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class WordNet30(models.Model):
     word = models.CharField(max_length=100, default='')
     definition = models.TextField()
@@ -14,6 +15,51 @@ class WordNet30(models.Model):
     class Meta:
         db_table = 'wordnet30'
         app_label = 'ws_web'
+
+
+class Participant(models.Model):
+    USER_TYPE = (
+        ("mechenical_turk", "Mechanical Turk Workers"),
+        ("in_lab_staff", "In-lab Trained Staff")
+    )
+
+    username = models.CharField(max_length=40, unique=True)
+    user_type = models.CharField(max_length=20, choices=USER_TYPE, default="in_lab_staff")
+    browser_display_lang = models.CharField(max_length=20, blank=True, null=True)
+    browser_user_agent = models.TextField()
+    browser_platform = models.TextField()
+    ip = models.GenericIPAddressField()
+
+    class Meta:
+        db_table = 'participant'
+        app_label = 'ws_web'
+
+
+class DerivedTokens(models.Model):
+    token_id = models.PositiveIntegerField()
+    gloss_with_replacement = models.CharField(max_length=255, blank=True, null=True)
+    part_of_speech = models.CharField(max_length=255, blank=True, null=True)
+    utterance_id = models.PositiveIntegerField()
+    transcript_id = models.PositiveIntegerField()
+    corpus_id = models.PositiveIntegerField()
+    collection_id = models.CharField(max_length=255, blank=True, null=True)
+    requires_tags = models.BooleanField()
+
+    class Meta:
+        db_table = 'derived_tokens'
+        app_label = 'ws_web'
+
+
+class Tags(models.Model):
+    gloss_with_replacement = models.CharField(max_length=255, blank=True, null=True)
+    token_id = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
+    sense_offset = models.PositiveIntegerField()
+    participant_id = models.ForeignKey('Participant', on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'tags'
+        app_label = 'ws_web'
+        unique_together = ('token_id', 'participant_id', 'sense_offset')
 
 
 # This is an auto-generated Django model module.
