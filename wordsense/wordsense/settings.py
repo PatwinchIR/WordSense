@@ -97,9 +97,10 @@ DATABASES = {
     },
     'childesdb': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'childesdb',
-        'USER': 'root',
-        'PASSWORD': ''
+        'NAME': os.environ.get('CHILDESDB_NAME'),
+        'USER': os.environ.get('CHILDESDB_USER'),
+        'PASSWORD': os.environ.get('CHILDESDB_PW'),
+        'HOST': os.environ.get('CHILDESDB_HOST')
     }
 }
 

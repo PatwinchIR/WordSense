@@ -15,7 +15,9 @@ class App extends Component {
       senses: [],
       selectedCollectionID: "",
       selectedCorpusID: "",
-      selectedTranscriptID: ""
+      selectedTranscriptID: "",
+      clickedTokenId: "",
+      clickedGloss: ""
     };
 
     this.handleCollectionChange = this.handleCollectionChange.bind(this);
@@ -80,10 +82,10 @@ class App extends Component {
           if (!utterances[item.utterance_id]) {
               utterances[item.utterance_id] = {
                   'speaker_role': item.speaker_role,
-                  'gloss_pos': []
+                  'id_gloss_pos': []
               }
           }
-          utterances[item.utterance_id].gloss_pos.push({'gloss': item.gloss, 'pos': item.part_of_speech});
+          utterances[item.utterance_id].id_gloss_pos.push({'gloss': item.gloss_with_replacement, 'pos': item.part_of_speech, 'token_id': item.id});
           return utterances;
         }, {}
     );
@@ -110,14 +112,16 @@ class App extends Component {
     }
   }
 
-  async loadSensesExamplesForWord(word, pos) {
+  async loadSensesExamplesForGloss(token_id, gloss, pos) {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/get_senses?word=${word}&pos=${pos}`
+        `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`
       );
       const senses = await res.json();
       this.setState({
-        senses: senses
+        senses: senses,
+        clickedTokenId: token_id,
+        clickedGloss: gloss
       });
     } catch (e) {
       console.log(e);
@@ -140,15 +144,16 @@ class App extends Component {
     this.setState({ selectedTranscriptID: selectedTranscriptID });
   }
 
-  handleWordClick(word_pos) {
-    this.loadSensesExamplesForWord(word_pos.word, word_pos.pos);
+  handleGlossClick(id_gloss_pos) {
+    console.log("Clicked token id:" + id_gloss_pos.token_id);
+    this.loadSensesExamplesForGloss(id_gloss_pos.token_id, id_gloss_pos.gloss, id_gloss_pos.pos);
   }
 
   render() {
     const isSenses = this.state.senses && this.state.senses.length > 0;
 
     return [
-      <div>{isSenses && <HiddenBox senses={this.state.senses} />}</div>,
+      <div>{isSenses && <HiddenBox clickedGloss={this.state.clickedGloss} clickedTokenId={this.state.clickedTokenId} senses={this.state.senses} />}</div>,
       <div>
         <form onSubmit={this.handleSubmit}>
           <label>
@@ -197,17 +202,17 @@ class App extends Component {
                     [
                         <span> {item.speaker_role}:
 
-                            {item.gloss_pos.map(
-                                word_pos => {
-                                    return word_pos.pos === 'n' ||
-                                        word_pos.pos === 'v' ||
-                                        word_pos.pos === 'adv' ||
-                                        word_pos.pos === 'adj' ?
+                            {item.id_gloss_pos.map(
+                                id_gloss_pos => {
+                                    return id_gloss_pos.pos === 'n' ||
+                                        id_gloss_pos.pos === 'v' ||
+                                        id_gloss_pos.pos === 'adv' ||
+                                        id_gloss_pos.pos === 'adj' ?
                                         (
-                                            <span onClick={() => this.handleWordClick(word_pos)} style={{cursor:'pointer', color:'red'}}>{word_pos.gloss} </span>
+                                            <span onClick={() => this.handleGlossClick(id_gloss_pos)} style={{cursor:'pointer', color:'red'}}>{id_gloss_pos.gloss} </span>
                                         ) :
                                         (
-                                            <span>{word_pos.gloss} </span>
+                                            <span>{id_gloss_pos.gloss} </span>
                                         )
                                 }
                                 )}
@@ -249,13 +254,20 @@ class HiddenBox extends React.Component {
 
   handleFormSubmit(event) {
     event.preventDefault();
-    fetch("http://127.0.0.1:8000/api/save", {
+    fetch("http://127.0.0.1:8000/api/save/", {
       method: "POST",
       headers: {
-        Accept: "application/json",
+        'Accept': "application/json",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(this.state.selectedSenses)
+      body: JSON.stringify(
+          {
+              "gloss_with_replacement": this.props.clickedGloss,
+              "token": this.props.clickedTokenId,
+              "sense_offsets": this.state.selectedSenses,
+              "participant": 1
+          }
+      )
     });
     console.log(
       "Your favorite flavor is: " + JSON.stringify(this.state.selectedSenses)

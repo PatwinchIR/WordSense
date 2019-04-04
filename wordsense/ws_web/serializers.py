@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance, Token
+from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -28,13 +28,8 @@ class TranscriptSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
-            'languages',
-            'date',
             'filename',
             'corpus_id',
-            'target_child_id',
-            'target_child_age',
-            'target_child_name'
         )
         model = Transcript
 
@@ -63,15 +58,22 @@ class TokenSerializer(serializers.Serializer):
     lemma = serializers.CharField(max_length=255)
 
 
-class TokenSerializer1(serializers.ModelSerializer):
+class DerivedTokensSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Token
+        model = DerivedTokens
         fields = (
-            'gloss',
+            'id',
+            'gloss_with_replacement',
             'part_of_speech',
             'utterance_id',
             'speaker_role'
         )
+
+
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tags
+        fields = '__all__'
 
 
 class UtteranceSerializer(serializers.ModelSerializer):
@@ -81,7 +83,7 @@ class UtteranceSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'order',
-            'gloss_pos',
+            'id_gloss_pos',
             'part_of_speech',
             'speaker_role',
         )

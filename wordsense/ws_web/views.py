@@ -1,43 +1,17 @@
+from itertools import zip_longest
+
 from django.shortcuts import render
 
 # Create your views here.
 
-# import django
-# django.setup()
-#
-# from ws_web.models import WordNet30
-#
-# from nltk.corpus import wordnet as wn
-#
-#
-# def populate(x):
-#     # data is a list of lists
-#     d, created = WordNet30.objects.get_or_create(word=x.name().split('.')[0],
-#                                                  pos=x.pos(),
-#                                                  offset=x.offset(),
-#                                                  definition=x.definition(),
-#                                                  examples=x.examples(),
-#                                                  lemma_names=x.lemma_names(),
-#                                                  name=x.name()
-#     )
-#     print(d, created)
-#
-#
-# if __name__ == "__main__":
-#     y = wn.all_synsets()
-#     i = 0
-#     for synset in iter(y):
-#         i += 1
-#         populate(synset)
-#         print(i)
 
 # todos/views.py
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance, Token
+from ws_web.models import Collection, Corpus, Transcript, Utterance, DerivedTokens
 from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
-    SenseSerializer, TokenSerializer1
+    SenseSerializer, DerivedTokensSerializer, TagsSerializer
 from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
@@ -79,14 +53,13 @@ class ListUtterance(generics.ListAPIView):
         return Response(serializer.data)
 
 
-class ListToken(generics.ListAPIView):
-    serializer_class = TokenSerializer1
+class ListDerivedTokens(generics.ListAPIView):
+    serializer_class = DerivedTokensSerializer
 
     def list(self, request, *args, **kwargs):
         transcript_id = request.query_params['transcript_id']
-        self.queryset = Token.objects.get_queryset().filter(transcript_id=transcript_id).order_by('utterance_id', 'token_order')
-        serializer = TokenSerializer1(self.queryset, many=True)
-        # print(serializer.data)
+        self.queryset = DerivedTokens.objects.get_queryset().filter(transcript_id=transcript_id).order_by('utterance_id', 'token_id')
+        serializer = DerivedTokensSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
 
@@ -96,7 +69,7 @@ class ListSenses(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         pos = request.query_params['pos']
-        word = lemmatizer.lemmatize(request.query_params['word'], pos)
+        word = lemmatizer.lemmatize(request.query_params['gloss'], pos)
 
         synsets = wn.synsets(word, pos)
         serializer = SenseSerializer(synsets, many=True)
@@ -110,7 +83,23 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         pass
 
     def create(self, request, *args, **kwargs):
-        pass
+        data = request.data
+        sense_offsets = data.pop('sense_offsets')
+        data_to_save = list(
+            map(lambda item: dict(item[1] + [item[0]]),
+                zip_longest(
+                    map(lambda offset: ('sense_offset', offset), sense_offsets),
+                    '',
+                    fillvalue=list(data.items())
+                )
+            )
+        )
+        serializer = TagsSerializer(data=data_to_save, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DetailCollection(generics.RetrieveUpdateDestroyAPIView):

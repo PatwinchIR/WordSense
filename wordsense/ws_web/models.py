@@ -44,6 +44,8 @@ class DerivedTokens(models.Model):
     corpus_id = models.PositiveIntegerField()
     collection_id = models.CharField(max_length=255, blank=True, null=True)
     requires_tags = models.BooleanField()
+    speaker_name = models.CharField(max_length=255, blank=True, null=True)
+    speaker_role = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'derived_tokens'
@@ -52,14 +54,14 @@ class DerivedTokens(models.Model):
 
 class Tags(models.Model):
     gloss_with_replacement = models.CharField(max_length=255, blank=True, null=True)
-    token_id = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
+    token = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
     sense_offset = models.PositiveIntegerField()
-    participant_id = models.ForeignKey('Participant', on_delete=models.PROTECT)
+    participant = models.ForeignKey('Participant', on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'tags'
         app_label = 'ws_web'
-        unique_together = ('token_id', 'participant_id', 'sense_offset')
+        unique_together = ('token', 'participant', 'sense_offset')
 
 
 # This is an auto-generated Django model module.
@@ -83,6 +85,7 @@ class Collection(models.Model):
 class Corpus(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
     collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -104,6 +107,9 @@ class Participant(models.Model):
     max_age = models.FloatField(blank=True, null=True)
     min_age = models.FloatField(blank=True, null=True)
     target_child = models.ForeignKey('self', models.DO_NOTHING, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    corpus_name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -116,21 +122,28 @@ class Token(models.Model):
     replacement = models.CharField(max_length=255, blank=True, null=True)
     stem = models.CharField(max_length=255, blank=True, null=True)
     part_of_speech = models.CharField(max_length=255, blank=True, null=True)
-    relation = models.CharField(max_length=255, blank=True, null=True)
     speaker = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     utterance = models.ForeignKey('Utterance', models.DO_NOTHING, blank=True, null=True)
     token_order = models.IntegerField(blank=True, null=True)
     corpus = models.ForeignKey(Corpus, models.DO_NOTHING, blank=True, null=True)
     transcript = models.ForeignKey('Transcript', models.DO_NOTHING, blank=True, null=True)
-    speaker_age = models.FloatField(blank=True, null=True)
     speaker_code = models.CharField(max_length=255, blank=True, null=True)
     speaker_name = models.CharField(max_length=255, blank=True, null=True)
     speaker_role = models.CharField(max_length=255, blank=True, null=True)
-    speaker_sex = models.CharField(max_length=255, blank=True, null=True)
     target_child = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     target_child_age = models.FloatField(blank=True, null=True)
     target_child_name = models.CharField(max_length=255, blank=True, null=True)
     target_child_sex = models.CharField(max_length=255, blank=True, null=True)
+    utterance_type = models.CharField(max_length=255, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    english = models.CharField(max_length=255, blank=True, null=True)
+    prefix = models.CharField(max_length=255, blank=True, null=True)
+    suffix = models.CharField(max_length=255, blank=True, null=True)
+    num_morphemes = models.IntegerField(blank=True, null=True)
+    language = models.CharField(max_length=255, blank=True, null=True)
+    corpus_name = models.CharField(max_length=255, blank=True, null=True)
+    clitic = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -149,6 +162,9 @@ class TokenFrequency(models.Model):
     speaker = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     target_child = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     transcript = models.ForeignKey('Transcript', models.DO_NOTHING, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    language = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -157,13 +173,18 @@ class TokenFrequency(models.Model):
 
 
 class Transcript(models.Model):
-    languages = models.CharField(max_length=255, blank=True, null=True)
+    language = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     filename = models.CharField(max_length=255, blank=True, null=True)
     corpus = models.ForeignKey(Corpus, models.DO_NOTHING, blank=True, null=True)
     target_child = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     target_child_age = models.FloatField(blank=True, null=True)
     target_child_name = models.CharField(max_length=255, blank=True, null=True)
+    target_child_sex = models.CharField(max_length=255, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    pid = models.CharField(max_length=255, blank=True, null=True)
+    corpus_name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -177,13 +198,20 @@ class TranscriptBySpeaker(models.Model):
     target_child_age = models.FloatField(blank=True, null=True)
     target_child_sex = models.CharField(max_length=255, blank=True, null=True)
     num_utterances = models.IntegerField(blank=True, null=True)
-    mlu = models.FloatField(blank=True, null=True)
+    mlu_w = models.FloatField(blank=True, null=True)
     num_types = models.IntegerField(blank=True, null=True)
     num_tokens = models.IntegerField(blank=True, null=True)
     speaker = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     target_child = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     transcript = models.ForeignKey(Transcript, models.DO_NOTHING, blank=True, null=True)
     corpus = models.ForeignKey(Corpus, models.DO_NOTHING, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    language = models.CharField(max_length=255, blank=True, null=True)
+    hdd = models.FloatField(blank=True, null=True)
+    mtld = models.FloatField(blank=True, null=True)
+    mlu_m = models.FloatField(blank=True, null=True)
+    num_morphemes = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -193,23 +221,29 @@ class TranscriptBySpeaker(models.Model):
 
 class Utterance(models.Model):
     speaker = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
-    order = models.IntegerField(blank=True, null=True)
+    utterance_order = models.IntegerField(blank=True, null=True)
     transcript = models.ForeignKey(Transcript, models.DO_NOTHING, blank=True, null=True)
     corpus = models.ForeignKey(Corpus, models.DO_NOTHING, blank=True, null=True)
     gloss = models.TextField(blank=True, null=True)
-    length = models.IntegerField(blank=True, null=True)
-    relation = models.TextField(blank=True, null=True)
+    num_tokens = models.IntegerField(blank=True, null=True)
     stem = models.TextField(blank=True, null=True)
     part_of_speech = models.TextField(blank=True, null=True)
-    speaker_age = models.FloatField(blank=True, null=True)
     speaker_code = models.CharField(max_length=255, blank=True, null=True)
     speaker_name = models.CharField(max_length=255, blank=True, null=True)
     speaker_role = models.CharField(max_length=255, blank=True, null=True)
-    speaker_sex = models.CharField(max_length=255, blank=True, null=True)
     target_child = models.ForeignKey(Participant, models.DO_NOTHING, blank=True, null=True)
     target_child_age = models.FloatField(blank=True, null=True)
     target_child_name = models.CharField(max_length=255, blank=True, null=True)
     target_child_sex = models.CharField(max_length=255, blank=True, null=True)
+    type = models.CharField(max_length=255, blank=True, null=True)
+    media_end = models.FloatField(blank=True, null=True)
+    media_start = models.FloatField(blank=True, null=True)
+    media_unit = models.CharField(max_length=255, blank=True, null=True)
+    collection = models.ForeignKey(Collection, models.DO_NOTHING, blank=True, null=True)
+    collection_name = models.CharField(max_length=255, blank=True, null=True)
+    num_morphemes = models.IntegerField(blank=True, null=True)
+    language = models.CharField(max_length=255, blank=True, null=True)
+    corpus_name = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
