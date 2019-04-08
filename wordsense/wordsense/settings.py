@@ -101,6 +101,10 @@ DATABASES = {
         'USER': os.environ.get('CHILDESDB_USER'),
         'PASSWORD': os.environ.get('CHILDESDB_PW'),
         'HOST': os.environ.get('CHILDESDB_HOST')
+        # 'NAME': 'childesdb',  # os.environ.get('CHILDESDB_NAME'),
+        # 'USER': 'root',  # os.environ.get('CHILDESDB_USER'),
+        # 'PASSWORD': '',  # os.environ.get('CHILDESDB_PW'),
+        # # 'HOST': os.environ.get('CHILDESDB_HOST')
     }
 }
 
