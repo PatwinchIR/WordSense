@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Intent, Toaster, Checkbox, Text, Button } from "@blueprintjs/core";
 
 class SenseDisplay extends Component {
     constructor(props) {
@@ -6,21 +7,33 @@ class SenseDisplay extends Component {
 
     this.state = {
         senses: [],
-      selectedSenses: []
+      selectedSenses: [],
+        saveStatus: "",
+        saveDisabled: false,
+        originalSenses: []
     };
 
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    this.handleReset = this.handleReset.bind(this);
   }
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`
+      const sensesRes = await fetch(
+          `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`
       );
-      const senses = await res.json();
+      const tagsRes = await fetch(
+          `http://127.0.0.1:8000/api/get_tags?gloss_with_replacement=${gloss}&token_id=${token_id}`
+      );
+      const senses = await sensesRes.json();
+      const tags = await tagsRes.json();
       this.setState({
         senses: senses,
+        originalSenses: JSON.parse(JSON.stringify(tags)),
+        selectedSenses: tags,
+        saveStatus: tags.length > 0 ? "SAVED" : "SAVE",
+        saveDisabled: tags.length === 0
       });
     } catch (e) {
       console.log(e);
@@ -33,6 +46,7 @@ class SenseDisplay extends Component {
         }
     }
 
+
   handleSensesChange(event) {
     const selectedSenses = this.state.selectedSenses;
     let index;
@@ -43,7 +57,20 @@ class SenseDisplay extends Component {
       selectedSenses.splice(index, 1);
     }
 
-    this.setState({ selectedSenses: selectedSenses });
+    this.setState({
+        selectedSenses: selectedSenses,
+        saveStatus: arraysEqual(selectedSenses, this.state.originalSenses) ? "SAVED" : "SAVE",
+        saveDisabled: selectedSenses.length === 0
+    });
+  }
+
+  loadTags(offset) {
+        if (this.state.selectedSenses.length === 0) {
+            return false;
+        }
+        else {
+            return this.state.selectedSenses.some(item => item === offset);
+        }
   }
 
   handleFormSubmit(event) {
@@ -62,10 +89,54 @@ class SenseDisplay extends Component {
               "participant": 1
           }
       )
+    }).then(response => {
+        const toaster = Toaster.create(this.props);
+        if (response.status === 202) {
+            toaster.show({
+                icon: "saved",
+                intent: Intent.SUCCESS,
+                message: (
+                    <>
+                        Sense offsets saved. <em>Yay!</em>
+                    </>
+                ),
+            });
+            this.setState({
+                originalSenses: JSON.parse(JSON.stringify(this.state.selectedSenses)),
+                saveStatus: "SAVED"
+            })
+        } else if (response.status === 302) {
+            toaster.show({
+                icon: "warning-sign",
+                intent: Intent.WARNING,
+                message: (
+                    <>
+                        Sense offsets already saved.
+                    </>
+                ),
+            })
+        } else {
+            toaster.show({
+                intent: Intent.DANGER,
+                message: (
+                    <>
+                        <em>Oops! </em>Failed to save sense offsets.
+                    </>
+                ),
+            })
+        }
     });
+
     console.log(
       "Your favorite flavor is: " + JSON.stringify(this.state.selectedSenses)
     );
+  }
+
+  handleReset() {
+        this.setState({
+            selectedSenses: JSON.parse(JSON.stringify(this.state.originalSenses)),
+            saveStatus: this.state.originalSenses.length === 0 ? "SAVE" : "SAVED",
+        })
   }
 
   render() {
@@ -74,33 +145,63 @@ class SenseDisplay extends Component {
         if (isSenses) {
 
     return  (
-      <div className="senses">
+      <div id="senses">
         <form onSubmit={this.handleFormSubmit}>
           {this.state.senses.map(sense_example => [
-            <label>
-              <input
+              <Checkbox
                 style={{ color: "blue" }}
                 type="checkbox"
                 value={sense_example.offset}
                 onChange={this.handleSensesChange}
-              />
-              {sense_example.sense}
-            </label>,
-            <br />,
-            <div>
+                checked={this.loadTags(sense_example.offset)}
+                label={sense_example.sense}
+              />,
+            <Text>
               {sense_example.examples.map(example => [
                 <span style={{ backgroundColor: "yellow" }}>{example}</span>,
                 <br />
               ])}
-            </div>
+            </Text>
           ])}
-          <input type="submit" />
+          <Button
+              type="submit"
+              intent={this.state.saveStatus === "SAVED" ? "success" : "primary"}
+              text={this.state.saveStatus}
+              disabled={this.state.saveDisabled
+                          || this.state.saveStatus === "SAVED"
+                          || this.state.selectedSenses.length === 0}
+          />
+          <Button
+              intent={"warning"}
+              text={"RESET"}
+              onClick={this.handleReset}
+              disabled={arraysEqual(this.state.selectedSenses, this.state.originalSenses)}
+          />
         </form>
       </div>
     );
   }
   return null;
     }
+
+}
+
+function arraysEqual(_arr1, _arr2) {
+
+    if (!Array.isArray(_arr1) || ! Array.isArray(_arr2) || _arr1.length !== _arr2.length)
+      return false;
+
+    var arr1 = _arr1.concat().sort();
+    var arr2 = _arr2.concat().sort();
+
+    for (var i = 0; i < arr1.length; i++) {
+
+        if (arr1[i] !== arr2[i])
+            return false;
+
+    }
+
+    return true;
 
 }
 

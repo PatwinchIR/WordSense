@@ -31,3 +31,26 @@
     transform: rotate(360deg);
   }
 }
+
+#upper-container {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+#upper-container #content-selection {
+  width: 300px;
+  padding: 20px 30px;
+  background: #FCF;
+}
+
+
+#upper-container #utterances {
+  width: 100%;
+  max-height: 500px;
+  /*overflow-y: hidden;*/
+  background: #CFF;
+}
+
+.currentFocus {
+  font-size: 20px;
+}

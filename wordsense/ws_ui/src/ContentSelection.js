@@ -73,7 +73,7 @@ class ContentSelection extends Component {
   }
 
   render () {
-    return <form onSubmit={this.handleSubmit}>
+    return <form id='content-selection' onSubmit={this.handleSubmit}>
       <label>
         Pick your collection:
         <Select
