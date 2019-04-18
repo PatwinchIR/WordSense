@@ -49,8 +49,8 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', # new
-    'django.middleware.common.CommonMiddleware', # new
+    'corsheaders.middleware.CorsMiddleware',  # new
+    'django.middleware.common.CommonMiddleware',  # new
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

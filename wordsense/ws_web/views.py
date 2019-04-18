@@ -56,7 +56,8 @@ class ListDerivedTokens(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         transcript_id = request.query_params['transcript_id']
-        self.queryset = DerivedTokens.objects.get_queryset().filter(transcript_id=transcript_id).order_by('utterance_id', 'token_id')
+        self.queryset = DerivedTokens.objects.get_queryset().filter(
+            transcript_id=transcript_id).order_by('utterance_id', 'token_id')
         serializer = DerivedTokensSerializer(self.queryset, many=True)
         return Response(serializer.data)
 
@@ -94,7 +95,8 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         if set(data['sense_offsets']) == existing_sense_offsets:
             return Response(status=status.HTTP_302_FOUND)
         else:
-            sense_offsets_to_be_deleted = existing_sense_offsets - set(data['sense_offsets'])
+            sense_offsets_to_be_deleted = existing_sense_offsets - \
+                set(data['sense_offsets'])
             for offset in sense_offsets_to_be_deleted:
                 qryset = Tags.objects.filter(
                     gloss_with_replacement=data['gloss_with_replacement'],
@@ -104,15 +106,17 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 for obj in qryset:
                     obj.delete()
 
-            sense_offsets_to_be_saved = set(data['sense_offsets']) - existing_sense_offsets
+            sense_offsets_to_be_saved = set(
+                data['sense_offsets']) - existing_sense_offsets
             data.pop('sense_offsets')
             data_to_save = list(
                 map(lambda item: dict(item[1] + [item[0]]),
                     zip_longest(
-                        map(lambda offset: ('sense_offset', offset), sense_offsets_to_be_saved),
+                        map(lambda offset: ('sense_offset', offset),
+                            sense_offsets_to_be_saved),
                         '',
                         fillvalue=list(data.items())
-                    )
+                )
                 )
             )
             serializer = TagsSerializer(data=data_to_save, many=True)
@@ -126,5 +130,3 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 class DetailCollection(generics.RetrieveUpdateDestroyAPIView):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
-
-

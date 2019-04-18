@@ -102,7 +102,8 @@ class UtteranceSerializer(serializers.ModelSerializer):
         model = Utterance
 
     def get_gloss_pos(self, obj):
-        gloss_pos = TokenSerializer(data=[{'word': word, 'pos': pos, 'lemma': lemma} for word, pos, lemma in zip(obj.gloss.split(' '), obj.part_of_speech.split(' '), obj.stem.split(' '))], many=True)
+        gloss_pos = TokenSerializer(data=[{'word': word, 'pos': pos, 'lemma': lemma} for word, pos, lemma in zip(
+            obj.gloss.split(' '), obj.part_of_speech.split(' '), obj.stem.split(' '))], many=True)
         if gloss_pos.is_valid():
             return gloss_pos.validated_data
         return gloss_pos.initial_data

@@ -1,7 +1,10 @@
 # Credit: https://djangosnippets.org/snippets/1400/
 
 
-import time, traceback, logging, sys
+import time
+import traceback
+import logging
+import sys
 
 
 class Status(object):
@@ -40,14 +43,16 @@ class Status(object):
     @property
     def time_left(self):
         rate = self.rate
-        if rate == 0: return 0
+        if rate == 0:
+            return 0
         return (self.total - self.cur_idx) / self.rate
 
 
 def progress_callback(status):
     sys.stdout.write('%d/%d failed=%d, rate~%.2f per second, left~%.2f sec    \r' % (
         status.cur_idx, status.total, status.num_failed, status.rate, status.time_left))
-    if status.done: print('\n')
+    if status.done:
+        print('\n')
     sys.stdout.flush()
 
 
