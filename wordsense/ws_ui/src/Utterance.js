@@ -6,8 +6,8 @@ class Utterance extends Component {
         super(props);
 
         this.state = {
-            active: false
-        }
+            activeWord: ""
+        };
     }
 
     changeUtteranceStyle() {
@@ -39,28 +39,32 @@ class Utterance extends Component {
         return [<div id="utterance" className={this.changeUtteranceStyle()}> {utterance.speaker_role}{utterance.speaker_role === "" ? "" : ": "}
 
                             {utterance.id_gloss_pos.map(
-                                id_gloss_pos => {
-                                    return id_gloss_pos.pos === 'n' ||
-                                        id_gloss_pos.pos === 'v' ||
-                                        id_gloss_pos.pos === 'adv' ||
-                                        id_gloss_pos.pos === 'adj' ?
+                                (idGlossPos, tokenIndex) => {
+                                    return idGlossPos.tag_status !== "UNTAGGABLE" ?
                                         (
                                             <span
                                                 onClick={
                                                     () => {
-                                                        this.props.handleGlossClick(id_gloss_pos);
+                                                        this.props.handleGlossClick(idGlossPos, this.props.index, tokenIndex);
                                                         if (this.props.index !== this.props.currentSlide + 4) {
                                                             this.props.setDisplayFocus(this.props.utterance, this.props.index);
                                                             this.props.carouselStore.setStoreState({currentSlide: this.props.index - 4})
                                                         }
                                                     }
                                                 }
-                                                style={{cursor:'pointer', color:'red'}}
+                                                style={{cursor:'pointer', color:
+                                                    this.props.activeWord === idGlossPos.token_id ?
+                                                        'blue' :
+                                                            (
+                                                                idGlossPos.tag_status === "TAGGABLE" ?
+                                                                'red' : 'green'
+                                                            )
+                                                }}
                                             >
-                                                {id_gloss_pos.gloss} </span>
+                                                {idGlossPos.gloss} </span>
                                         ) :
                                         (
-                                            <span>{id_gloss_pos.gloss} </span>
+                                            <span>{idGlossPos.gloss} </span>
                                         )
                                 }
                                 )}

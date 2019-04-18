@@ -5,9 +5,6 @@ import ButtonDiv from "./ButtonDiv";
 import Restart from "./Restart";
 import 'pure-react-carousel/dist/react-carousel.es.css';
 import { Spinner } from "@blueprintjs/core";
-import "normalize.css/normalize.css"
-import "@blueprintjs/icons/lib/css/blueprint-icons.css"
-import "@blueprintjs/core/lib/css/blueprint.css"
 
 class UtteranceDisplay extends Component {
 
@@ -31,56 +28,61 @@ class UtteranceDisplay extends Component {
         this.setDisplayFocus = this.setDisplayFocus.bind(this);
     }
 
-      processUtterances(rawUtterances) {
-    const utterances = rawUtterances.reduce(
-        (utterances, item) => {
-          if (!utterances[item.utterance_id]) {
-              utterances[item.utterance_id] = {
-                  'speaker_role': item.speaker_role,
-                  'id_gloss_pos': [],
-                  'tagable': false,
-                  'forwardStep': 1,
-                  'backwardStep': 1
+    processUtterances(rawUtterances) {
+        const utterances = rawUtterances.reduce(
+            (utterances, item) => {
+              if (!utterances[item.utterance_id]) {
+                  utterances[item.utterance_id] = {
+                      'speaker_role': item.speaker_role,
+                      'id_gloss_pos': [],
+                      'tagable': false,
+                      'forwardStep': 1,
+                      'backwardStep': 1
+                  }
               }
-          }
-          utterances[item.utterance_id].id_gloss_pos.push({'gloss': item.gloss_with_replacement, 'pos': item.part_of_speech, 'token_id': item.id});
-          return utterances;
-        }, {}
-    );
-    const results = [];
-    const emptyUtterance = {
-        'speaker_role': '',
-        'id_gloss_pos': [],
-        'tagable': false,
-        'forwardStep': 0,
-        'backwardStep': 0
-    };
+              utterances[item.utterance_id].id_gloss_pos.push({
+                  'gloss': item.gloss_with_replacement,
+                  'pos': item.part_of_speech,
+                  'token_id': item.id,
+                  'tag_status': item.tag_status
+              });
+              return utterances;
+            }, {}
+        );
+        const results = [];
+        const emptyUtterance = {
+            'speaker_role': '',
+            'id_gloss_pos': [],
+            'tagable': false,
+            'forwardStep': 0,
+            'backwardStep': 0
+        };
 
-    for (let i = 0; i < 4; i ++) results.push(emptyUtterance);
+        for (let i = 0; i < 4; i ++) results.push(emptyUtterance);
 
-    Object.keys(utterances)
-        .sort((a, b) => (a - b))
-        .forEach((v, i) => {
-            const utterance = utterances[v];
-            utterances[v].tagable = utterance.id_gloss_pos.reduce((accum, item) => accum || (item.pos === 'n' || item.pos === 'v' || item.pos === 'adj' || item.pos === 'adv'), false);
-          results.push(utterances[v]);
-    });
-    results.forEach( (utterance, index) => {
-        for (let i = index + 1; i < results.length; i ++) {
-            if (results[i].tagable) {
-                utterance.forwardStep = i - index;
-                break;
+        Object.keys(utterances)
+            .sort((a, b) => (a - b))
+            .forEach((v, i) => {
+                const utterance = utterances[v];
+                utterances[v].tagable = utterance.id_gloss_pos.reduce((accum, item) => accum || (item.pos === 'n' || item.pos === 'v' || item.pos === 'adj' || item.pos === 'adv'), false);
+              results.push(utterances[v]);
+        });
+        results.forEach( (utterance, index) => {
+            for (let i = index + 1; i < results.length; i ++) {
+                if (results[i].tagable) {
+                    utterance.forwardStep = i - index;
+                    break;
+                }
             }
-        }
-        for (let i = index - 1; i > 0; i --) {
-            if (results[i].tagable) {
-                utterance.backwardStep = index - i;
-                break;
+            for (let i = index - 1; i > 0; i --) {
+                if (results[i].tagable) {
+                    utterance.backwardStep = index - i;
+                    break;
+                }
             }
-        }
-    });
-    console.log(results);
-    return results;
+        });
+        console.log(results);
+        return results;
   }
 
     async loadUtterancesForSelectedTranscript(transcriptID) {
@@ -105,20 +107,30 @@ class UtteranceDisplay extends Component {
             this.setState({loading: true});
             this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
         }
+        if (this.props.utteranceIndexForTagStatusChange !== nextProps.utteranceIndexForTagStatusChange) {
+            let utterances = [...this.state.utterances];
+            let utterance = {...utterances[nextProps.utteranceIndexForTagStatusChange]};
+            let token = {...utterance.id_gloss_pos[nextProps.tokenIndex]};
+            token.tag_status = "TAGGED";
+            utterance.id_gloss_pos[nextProps.tokenIndex] = token;
+            utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
+            this.setState({utterances: utterances});
+        }
     }
 
     setDisplayFocus(utterance, index) {
         this.setState({
             displayFocusUtterance: utterance,
-            displayFocusIndex: index,
+            displayFocusIndex: index
         })
     }
 
     render () {
         return <div id="utterances">
             <CarouselProvider
-                naturalSlideWidth={100}
-                naturalSlideHeight={10}
+                id="utterances"
+                naturalSlideWidth={50}
+                naturalSlideHeight={2}
                 totalSlides={this.state.utterances.length}
                 orientation="vertical"
                 visibleSlides={9}
@@ -136,6 +148,7 @@ class UtteranceDisplay extends Component {
                             index={index}
                             setDisplayFocus={this.setDisplayFocus}
                             handleGlossClick={this.props.handleGlossClick}
+                            activeWord={this.props.activeWord}
                         />
                     </Slide>
                 )}

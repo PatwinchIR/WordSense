@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import { Intent, Toaster, Checkbox, Text, Button } from "@blueprintjs/core";
+import { Intent, Toaster, Checkbox, Text, Button, HTMLTable } from "@blueprintjs/core";
+import { CarouselProvider, Slider, Slide, ButtonBack, ButtonNext, ButtonFirst, ButtonLast } from 'pure-react-carousel';
 
 class SenseDisplay extends Component {
     constructor(props) {
@@ -16,6 +17,7 @@ class SenseDisplay extends Component {
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.handleReset = this.handleReset.bind(this);
+    // this.senseCellRenderer = this.senseCellRenderer.bind(this);
   }
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
@@ -104,7 +106,8 @@ class SenseDisplay extends Component {
             this.setState({
                 originalSenses: JSON.parse(JSON.stringify(this.state.selectedSenses)),
                 saveStatus: "SAVED"
-            })
+            });
+            this.props.changeTagStatus(this.props.utteranceIndex);
         } else if (response.status === 302) {
             toaster.show({
                 icon: "warning-sign",
@@ -139,6 +142,21 @@ class SenseDisplay extends Component {
         })
   }
 
+  // senseCellRenderer(rowIndex) {
+  //     return <Cell>
+  //         <Checkbox
+  //           style={{ color: "blue" }}
+  //           type="checkbox"
+  //           value={this.state.senses[rowIndex].offset}
+  //           onChange={this.handleSensesChange}
+  //           checked={this.loadTags(this.state.senses[rowIndex].offset)}
+  //         />
+  //         <TruncatedFormat>{this.state.senses[rowIndex].sense}</TruncatedFormat>
+  //     </Cell>
+  // }
+
+
+
   render() {
         const isSenses = this.state.senses && this.state.senses.length > 0;
 
@@ -147,22 +165,48 @@ class SenseDisplay extends Component {
     return  (
       <div id="senses">
         <form onSubmit={this.handleFormSubmit}>
+            <HTMLTable id="senses" class="bp3-html-table bp3-interactive bp3-html-table-striped">
+                <tbody>
           {this.state.senses.map(sense_example => [
-              <Checkbox
+              <tr>
+                  <td>
+                  <Checkbox
                 style={{ color: "blue" }}
                 type="checkbox"
                 value={sense_example.offset}
                 onChange={this.handleSensesChange}
                 checked={this.loadTags(sense_example.offset)}
                 label={sense_example.sense}
-              />,
-            <Text>
-              {sense_example.examples.map(example => [
-                <span style={{ backgroundColor: "yellow" }}>{example}</span>,
-                <br />
-              ])}
-            </Text>
+                    />
+                  </td>
+                  <td>
+                      <CarouselProvider
+                          naturalSlideWidth={50}
+                          naturalSlideHeight={3}
+                          totalSlides={sense_example.examples.length}
+                          currentSlide={0}
+                          lockOnWindowScroll={false}
+                          dragEnabled={false}
+                          touchEnabled={false}
+                      >
+                          <Slider style={{width: 1000}}>
+
+              {sense_example.examples.map(example =>
+                <Slide>
+                    <Text>{example}</Text>
+                </Slide>
+              )}
+                          </Slider>
+                          <ButtonFirst>{"<<"}</ButtonFirst>
+                          <ButtonBack>{"<"}</ButtonBack>
+                              <ButtonNext>{">"}</ButtonNext>
+                      <ButtonLast>{">>"}</ButtonLast>
+                      </CarouselProvider>
+                  </td>
+              </tr>
           ])}
+          </tbody>
+            </HTMLTable>
           <Button
               type="submit"
               intent={this.state.saveStatus === "SAVED" ? "success" : "primary"}

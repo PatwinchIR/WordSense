@@ -59,6 +59,8 @@ class TokenSerializer(serializers.Serializer):
 
 
 class DerivedTokensSerializer(serializers.ModelSerializer):
+    tag_status = serializers.SerializerMethodField()
+
     class Meta:
         model = DerivedTokens
         fields = (
@@ -66,8 +68,18 @@ class DerivedTokensSerializer(serializers.ModelSerializer):
             'gloss_with_replacement',
             'part_of_speech',
             'utterance_id',
-            'speaker_role'
+            'speaker_role',
+            'tag_status'
         )
+
+    def get_tag_status(self, obj):
+        if obj.part_of_speech not in ("n", "v", "adv", "adj"):
+            return "UNTAGGABLE"
+        qryset = Tags.objects.filter(
+            gloss_with_replacement=obj.gloss_with_replacement,
+            token_id=obj.id
+        )
+        return "TAGGED" if len(qryset) >= 1 else "TAGGABLE"
 
 
 class TagsSerializer(serializers.ModelSerializer):

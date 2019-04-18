@@ -3,6 +3,9 @@ import "./App.css";
 import ContentSelection from "./ContentSelection";
 import UtteranceDisplay from "./UtteranceDisplay";
 import SenseDisplay from "./SenseDisplay";
+import "normalize.css/normalize.css"
+import "@blueprintjs/icons/lib/css/blueprint-icons.css"
+import "@blueprintjs/core/lib/css/blueprint.css"
 
 class App extends Component {
   constructor(props) {
@@ -11,11 +14,15 @@ class App extends Component {
     this.state = {
       selectedTranscriptID: "",
         idGlossPos: "",
-        newCurrentIndex: 0
+        activeWord: -1,
+        utteranceIndexForTagStatusChange: -1,
+        utteranceIndex: -1,
+        tokenIndex: -1
     };
 
     this.handleTranscriptChange = this.handleTranscriptChange.bind(this);
     this.handleGlossClick = this.handleGlossClick.bind(this);
+    this.changeTagStatus = this.changeTagStatus.bind(this);
   }
 
   handleTranscriptChange(selectedTranscriptID) {
@@ -23,11 +30,17 @@ class App extends Component {
   }
 
 
-  handleGlossClick(idGlossPos, newCurrentIndex) {
+  handleGlossClick(idGlossPos, utteranceIndex, tokenIndex) {
     this.setState({
+        activeWord: idGlossPos.token_id,
         idGlossPos: idGlossPos,
-        newCurrentIndex: newCurrentIndex
+        utteranceIndex: utteranceIndex,
+        tokenIndex: tokenIndex
     });
+  }
+
+  changeTagStatus(utteranceIndexForTagStatusChange) {
+    this.setState({utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange});
   }
 
   render() {
@@ -37,11 +50,14 @@ class App extends Component {
                           selectedTranscriptID={this.state.selectedTranscriptID}/>
         <UtteranceDisplay selectedTranscriptID={this.state.selectedTranscriptID.value}
                           handleGlossClick={this.handleGlossClick}
-                          newCurrentIndex={this.state.newCurrentIndex}/>
+                          activeWord={this.state.activeWord}
+                          utteranceIndexForTagStatusChange={this.state.utteranceIndexForTagStatusChange}
+                          tokenIndex={this.state.tokenIndex}
+        />
       </div>,
         <div id='lower-container'>
 
-        <SenseDisplay idGlossPos={this.state.idGlossPos} />
+        <SenseDisplay idGlossPos={this.state.idGlossPos} changeTagStatus={this.changeTagStatus} utteranceIndex={this.state.utteranceIndex}/>
           </div>
 
     ];
