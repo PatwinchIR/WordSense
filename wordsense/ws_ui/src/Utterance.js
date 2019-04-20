@@ -38,11 +38,15 @@ class Utterance extends Component {
     return [
       <div id="utterance" className={this.changeUtteranceStyle()}>
         {" "}
+        <div id="utterance-index-column">
+          {this.props.index - 4 >= 0 ? `${this.props.index - 4}:` : ""}
+        </div>
         {utterance.speaker_role}
         {utterance.speaker_role === "" ? "" : ": "}
         {utterance.id_gloss_pos.map((idGlossPos, tokenIndex) => {
           return idGlossPos.tag_status !== "UNTAGGABLE" ? (
             <span
+              className="keyword"
               onClick={() => {
                 this.props.handleGlossClick(
                   idGlossPos,
@@ -66,7 +70,7 @@ class Utterance extends Component {
                     ? "blue"
                     : idGlossPos.tag_status === "TAGGABLE"
                     ? "red"
-                    : "green"
+                    : "limegreen"
               }}
             >
               {idGlossPos.gloss}{" "}

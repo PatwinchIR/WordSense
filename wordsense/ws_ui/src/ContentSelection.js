@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { Icon, Intent, NumericInput, Button } from "@blueprintjs/core";
+import { IconNames } from "@blueprintjs/icons";
 import Select from "react-select";
 
 class ContentSelection extends Component {
@@ -23,6 +25,7 @@ class ContentSelection extends Component {
     this.loadTranscriptsForSelectedCorpus = this.loadTranscriptsForSelectedCorpus.bind(
       this
     );
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   async componentDidMount() {
@@ -67,56 +70,87 @@ class ContentSelection extends Component {
 
   handleCollectionChange(selectedCollectionID) {
     this.loadCorporaForSelectedCollection(selectedCollectionID.value);
-    this.setState({ selectedCollectionID: selectedCollectionID });
+    this.setState({
+      selectedCollectionID: selectedCollectionID,
+      selectedCorpusID: "",
+      selectedTranscriptID: ""
+    });
   }
 
   handleCorpusChange(selectedCorpusID) {
     console.log(selectedCorpusID);
     this.loadTranscriptsForSelectedCorpus(selectedCorpusID.value);
-    this.setState({ selectedCorpusID: selectedCorpusID });
+    this.setState({
+      selectedCorpusID: selectedCorpusID,
+      selectedTranscriptID: ""
+    });
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    this.props.handleTranscriptIdInput(event.target[0], event.target[1].value);
   }
 
   render() {
     return (
-      <form id="content-selection" onSubmit={this.handleSubmit}>
-        <label>
-          Pick your collection:
-          <Select
-            value={this.state.selectedCollectionID}
-            onChange={this.handleCollectionChange}
-            placeholder="Select Collection..."
-            isSearchable={true}
-            options={this.state.collections.map(item => {
-              return { value: item.id, label: item.name };
-            })}
+      <form
+        id="content-selection"
+        onSubmit={this.props.handleTranscriptIdInput}
+      >
+        <div id="selections">
+          <label>
+            <Select
+              value={this.state.selectedCollectionID}
+              onChange={this.handleCollectionChange}
+              placeholder="Select Collection..."
+              isSearchable={true}
+              options={this.state.collections.map(item => {
+                return { value: item.id, label: item.name };
+              })}
+            />
+          </label>
+          <Icon intent="primary" icon="arrow-right" iconSize={20} />
+          <label>
+            <Select
+              value={this.state.selectedCorpusID}
+              onChange={this.handleCorpusChange}
+              placeholder="Select Corpus..."
+              options={this.state.corpora.map(item => {
+                return { value: item.id, label: item.name };
+              })}
+            />
+          </label>
+          <Icon intent="primary" icon="arrow-right" iconSize={20} />
+          <label>
+            <Select
+              value={this.props.selectedTranscriptID}
+              onChange={this.props.handleTranscriptChange}
+              placeholder="Select Transcript..."
+              options={this.state.transcripts.map(item => {
+                return {
+                  value: item.id,
+                  label: `${item.id}: ${item.filename}`
+                };
+              })}
+            />
+          </label>
+        </div>
+        <div id="separator">or</div>
+        <div id="inputs">
+          <NumericInput
+            name="inputTranscriptId"
+            buttonPosition="none"
+            placeholder="Enter Transcript ID..."
+            value={this.props.inputTranscriptId}
           />
-        </label>
-        <br />
-
-        <label>
-          Pick your corpus:
-          <Select
-            value={this.state.selectedCorpusID}
-            onChange={this.handleCorpusChange}
-            placeholder="Select Corpus..."
-            options={this.state.corpora.map(item => {
-              return { value: item.id, label: item.name };
-            })}
+          <NumericInput
+            name="inputUtteranceIndex"
+            buttonPosition="none"
+            placeholder="Enter Utterance Index..."
+            value={this.props.inputUtteranceIndex}
           />
-        </label>
-        <br />
-
-        <label>
-          Pick your transcript:
-          <Select
-            value={this.props.selectedTranscriptID}
-            onChange={this.props.handleTranscriptChange}
-            placeholder="Select Transcript..."
-            options={this.state.transcripts.map(item => {
-              return { value: item.id, label: item.filename };
-            })}
-          />
-        </label>
+          <Button type="submit">GO</Button>
+        </div>
       </form>
     );
   }

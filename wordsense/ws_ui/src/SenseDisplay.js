@@ -58,6 +58,11 @@ class SenseDisplay extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    if (this.props.transcriptId !== nextProps.transcriptId) {
+      this.setState({
+        senses: []
+      });
+    }
     if (this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id) {
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
@@ -155,89 +160,95 @@ class SenseDisplay extends Component {
     });
   }
 
-  // senseCellRenderer(rowIndex) {
-  //     return <Cell>
-  //         <Checkbox
-  //           style={{ color: "blue" }}
-  //           type="checkbox"
-  //           value={this.state.senses[rowIndex].offset}
-  //           onChange={this.handleSensesChange}
-  //           checked={this.loadTags(this.state.senses[rowIndex].offset)}
-  //         />
-  //         <TruncatedFormat>{this.state.senses[rowIndex].sense}</TruncatedFormat>
-  //     </Cell>
-  // }
-
   render() {
     const isSenses = this.state.senses && this.state.senses.length > 0;
 
     if (isSenses) {
       return (
         <div id="senses">
+          <Text className="currentWord">
+            {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}
+          </Text>
+          <Text>
+            (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
+            {this.props.utteranceIndex - 4})
+          </Text>
           <form onSubmit={this.handleFormSubmit}>
-            <HTMLTable
-              id="senses"
-              class="bp3-html-table bp3-interactive bp3-html-table-striped"
-            >
-              <tbody>
-                {this.state.senses.map(sense_example => [
+            <div className="bp3-card bp3-elevation-1">
+              <HTMLTable
+                id="senses-table"
+                className="bp3-html-table bp3-interactive bp3-html-table-striped"
+              >
+                <thead>
                   <tr>
-                    <td>
-                      <Checkbox
-                        style={{ color: "blue" }}
-                        type="checkbox"
-                        value={sense_example.offset}
-                        onChange={this.handleSensesChange}
-                        checked={this.loadTags(sense_example.offset)}
-                        label={sense_example.sense}
-                      />
-                    </td>
-                    <td>
-                      <CarouselProvider
-                        naturalSlideWidth={50}
-                        naturalSlideHeight={3}
-                        totalSlides={sense_example.examples.length}
-                        currentSlide={0}
-                        lockOnWindowScroll={false}
-                        dragEnabled={false}
-                        touchEnabled={false}
-                      >
-                        <Slider style={{ width: 1000 }}>
-                          {sense_example.examples.map(example => (
-                            <Slide>
-                              <Text>{example}</Text>
-                            </Slide>
-                          ))}
-                        </Slider>
-                        <ButtonFirst>{"<<"}</ButtonFirst>
-                        <ButtonBack>{"<"}</ButtonBack>
-                        <ButtonNext>{">"}</ButtonNext>
-                        <ButtonLast>{">>"}</ButtonLast>
-                      </CarouselProvider>
-                    </td>
+                    <th>Senses</th>
+                    <th>Examples</th>
                   </tr>
-                ])}
-              </tbody>
-            </HTMLTable>
-            <Button
-              type="submit"
-              intent={this.state.saveStatus === "SAVED" ? "success" : "primary"}
-              text={this.state.saveStatus}
-              disabled={
-                this.state.saveDisabled ||
-                this.state.saveStatus === "SAVED" ||
-                this.state.selectedSenses.length === 0
-              }
-            />
-            <Button
-              intent={"warning"}
-              text={"RESET"}
-              onClick={this.handleReset}
-              disabled={arraysEqual(
-                this.state.selectedSenses,
-                this.state.originalSenses
-              )}
-            />
+                </thead>
+                <tbody>
+                  {this.state.senses.map(sense_example => [
+                    <tr>
+                      <td>
+                        <Checkbox
+                          style={{ color: "blue" }}
+                          type="checkbox"
+                          value={sense_example.offset}
+                          onChange={this.handleSensesChange}
+                          checked={this.loadTags(sense_example.offset)}
+                          label={sense_example.sense}
+                        />
+                      </td>
+                      <td>
+                        <CarouselProvider
+                          naturalSlideWidth={12}
+                          naturalSlideHeight={1}
+                          totalSlides={sense_example.examples.length}
+                          currentSlide={0}
+                          lockOnWindowScroll={false}
+                          dragEnabled={false}
+                          touchEnabled={false}
+                        >
+                          <Slider className="example-slider">
+                            {sense_example.examples.map(example => (
+                              <Slide>
+                                <Text>{example}</Text>
+                              </Slide>
+                            ))}
+                          </Slider>
+                          <ButtonFirst>{"<<"}</ButtonFirst>
+                          <ButtonBack>{"<"}</ButtonBack>
+                          <ButtonNext>{">"}</ButtonNext>
+                          <ButtonLast>{">>"}</ButtonLast>
+                        </CarouselProvider>
+                      </td>
+                    </tr>
+                  ])}
+                </tbody>
+              </HTMLTable>
+            </div>
+            <div id="control-buttons">
+              <Button
+                type="submit"
+                intent={
+                  this.state.saveStatus === "SAVED" ? "success" : "primary"
+                }
+                text={this.state.saveStatus}
+                disabled={
+                  this.state.saveDisabled ||
+                  this.state.saveStatus === "SAVED" ||
+                  this.state.selectedSenses.length === 0
+                }
+              />
+              <Button
+                intent={"warning"}
+                text={"RESET"}
+                onClick={this.handleReset}
+                disabled={arraysEqual(
+                  this.state.selectedSenses,
+                  this.state.originalSenses
+                )}
+              />
+            </div>
           </form>
         </div>
       );

@@ -4,7 +4,7 @@ import { CarouselProvider, Slider, Slide } from "pure-react-carousel";
 import ButtonDiv from "./ButtonDiv";
 import Restart from "./Restart";
 import "pure-react-carousel/dist/react-carousel.es.css";
-import { Spinner } from "@blueprintjs/core";
+import { Spinner, Button, Toaster, Intent } from "@blueprintjs/core";
 
 class UtteranceDisplay extends Component {
   constructor(props) {
@@ -16,7 +16,9 @@ class UtteranceDisplay extends Component {
       utterances: [],
       displayFocusIndex: 0,
       displayFocusUtterance: [],
-      loading: false
+      loading: false,
+      confirmed: false,
+      inputUtteranceIndex: 0
     };
 
     const rowsDisplaying = 9;
@@ -25,6 +27,7 @@ class UtteranceDisplay extends Component {
       this
     );
     this.setDisplayFocus = this.setDisplayFocus.bind(this);
+    this.handleConfirmation = this.handleConfirmation.bind(this);
   }
 
   processUtterances(rawUtterances) {
@@ -92,16 +95,42 @@ class UtteranceDisplay extends Component {
 
   async loadUtterancesForSelectedTranscript(transcriptID) {
     try {
-      const res = await fetch(
+      await fetch(
         `http://127.0.0.1:8000/api/get_utterances?transcript_id=${transcriptID}`
-      );
-      const utterances = await res.json();
-      this.setState({
-        utterances: this.processUtterances(utterances),
-        loading: false,
-        displayFocusUtterance: [],
-        displayFocusIndex: 0
-      });
+      )
+        .then(res => {
+          if (res.ok) {
+            return res.json();
+          } else {
+            throw new Error("Invalid Transcript ID");
+          }
+        })
+        .then(utterances =>
+          this.setState({
+            utterances: this.processUtterances(utterances),
+            loading: false,
+            displayFocusUtterance: [],
+            displayFocusIndex: 0,
+            confirmed: false
+          })
+        )
+        .catch(error => {
+          const toaster = Toaster.create(this.props);
+          toaster.show({
+            intent: Intent.DANGER,
+            message: (
+              <>
+                <em>Oops! </em> Invalid Transcript ID
+              </>
+            )
+          });
+          this.setState({
+            loading: false,
+            displayFocusUtterance: [],
+            displayFocusIndex: 0,
+            confirmed: false
+          });
+        });
     } catch (e) {
       console.log(e);
     }
@@ -109,7 +138,10 @@ class UtteranceDisplay extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props.selectedTranscriptID !== nextProps.selectedTranscriptID) {
-      this.setState({ loading: true });
+      this.setState({
+        loading: true,
+        confirmed: false
+      });
       this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
     }
     if (
@@ -126,6 +158,14 @@ class UtteranceDisplay extends Component {
       utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
       this.setState({ utterances: utterances });
     }
+    if (this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex) {
+      this.setState({
+        inputUtteranceIndex: Math.min(
+          parseInt(nextProps.inputUtteranceIndex),
+          this.state.utterances.length - 1
+        )
+      });
+    }
   }
 
   setDisplayFocus(utterance, index) {
@@ -135,52 +175,85 @@ class UtteranceDisplay extends Component {
     });
   }
 
+  handleConfirmation() {
+    this.setState({ confirmed: true });
+  }
+
   render() {
     return (
       <div id="utterances">
-        <CarouselProvider
-          id="utterances"
-          naturalSlideWidth={50}
-          naturalSlideHeight={2}
-          totalSlides={this.state.utterances.length}
-          orientation="vertical"
-          visibleSlides={9}
-          currentSlide={0}
-          lockOnWindowScroll={false}
-          dragEnabled={false}
-          touchEnabled={false}
-        >
-          {this.state.loading && (
-            <Spinner intent={"primary"} size={50} value={null} />
-          )}
-          <Slider>
-            {this.state.utterances.map((utterance, index) => (
-              <Slide index={index}>
-                <Utterance
-                  utterance={utterance}
-                  index={index}
-                  setDisplayFocus={this.setDisplayFocus}
-                  handleGlossClick={this.props.handleGlossClick}
-                  activeWord={this.props.activeWord}
-                />
-              </Slide>
-            ))}
-          </Slider>
-
-          <Restart loading={this.state.loading} />
-
-          <ButtonDiv
-            value="backward"
-            displayFocusUtterance={this.state.displayFocusUtterance}
-            displayFocusIndex={this.state.displayFocusIndex}
+        {this.state.loading && (
+          <Spinner
+            className="spinner"
+            intent={"primary"}
+            size={50}
+            value={null}
           />
+        )}
+        {this.props.selectedTranscriptID !== "-1" &&
+          !this.state.loading &&
+          !this.state.confirmed && [
+            <Button
+              className="button-work-on-this"
+              onClick={this.handleConfirmation}
+              disabled={this.state.utterances.length > 0 ? false : true}
+            >
+              Okay, Work on this!
+            </Button>,
+            <div className="preview-box bp3-card bp3-elevation-1">
+              {this.state.utterances.map(utterance => (
+                <div>
+                  {utterance.speaker_role}
+                  {utterance.speaker_role === "" ? "" : ": "}
+                  {utterance.id_gloss_pos.map(idGlossPos => (
+                    <span>{idGlossPos.gloss} </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ]}
+        {this.state.confirmed && (
+          <CarouselProvider
+            naturalSlideWidth={50}
+            naturalSlideHeight={2.5}
+            totalSlides={this.state.utterances.length}
+            orientation="vertical"
+            visibleSlides={9}
+            currentSlide={this.state.inputUtteranceIndex}
+            lockOnWindowScroll={false}
+            dragEnabled={false}
+            touchEnabled={false}
+          >
+            <Slider id="content-slider" className="bp3-card bp3-elevation-1">
+              {this.state.utterances.map((utterance, index) => (
+                <Slide index={index}>
+                  <Utterance
+                    utterance={utterance}
+                    index={index}
+                    setDisplayFocus={this.setDisplayFocus}
+                    handleGlossClick={this.props.handleGlossClick}
+                    activeWord={this.props.activeWord}
+                  />
+                </Slide>
+              ))}
+            </Slider>
 
-          <ButtonDiv
-            value="forward"
-            displayFocusUtterance={this.state.displayFocusUtterance}
-            displayFocusIndex={this.state.displayFocusIndex}
-          />
-        </CarouselProvider>
+            <Restart loading={this.state.loading} />
+            <div id="control-buttons">
+              <ButtonDiv
+                value="backward"
+                displayFocusUtterance={this.state.displayFocusUtterance}
+                displayFocusIndex={this.state.displayFocusIndex}
+              />
+
+              <ButtonDiv
+                value="forward"
+                displayFocusUtterance={this.state.displayFocusUtterance}
+                displayFocusIndex={this.state.displayFocusIndex}
+              />
+            </div>
+          </CarouselProvider>
+        )}
       </div>
     );
   }

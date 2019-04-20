@@ -58,8 +58,11 @@ class ListDerivedTokens(generics.ListAPIView):
         transcript_id = request.query_params['transcript_id']
         self.queryset = DerivedTokens.objects.get_queryset().filter(
             transcript_id=transcript_id).order_by('utterance_id', 'token_id')
-        serializer = DerivedTokensSerializer(self.queryset, many=True)
-        return Response(serializer.data)
+        if len(self.queryset) > 0:
+            serializer = DerivedTokensSerializer(self.queryset, many=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class ListSenses(generics.ListAPIView):
