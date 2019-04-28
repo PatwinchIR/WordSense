@@ -32,16 +32,25 @@ class SenseDisplay extends Component {
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.handleReset = this.handleReset.bind(this);
-    // this.senseCellRenderer = this.senseCellRenderer.bind(this);
   }
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
     try {
       const sensesRes = await fetch(
-        `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`
+        `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`,
+           {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      }
       );
       const tagsRes = await fetch(
-        `http://127.0.0.1:8000/api/get_tags?gloss_with_replacement=${gloss}&token_id=${token_id}`
+        `http://127.0.0.1:8000/api/get_tags?gloss_with_replacement=${gloss}&token_id=${token_id}`,
+           {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      }
       );
       const senses = await sensesRes.json();
       const tags = await tagsRes.json();
@@ -105,7 +114,8 @@ class SenseDisplay extends Component {
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
       },
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,
@@ -164,7 +174,7 @@ class SenseDisplay extends Component {
     const isSenses = this.state.senses && this.state.senses.length > 0;
 
     if (isSenses) {
-      return (
+      return (this.props.isLoggedIn &&
         <div id="senses">
           <Text className="currentWord">
             {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}

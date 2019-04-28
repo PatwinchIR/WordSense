@@ -4,16 +4,38 @@ from itertools import zip_longest
 
 
 # todos/views.py
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from ws_web.models import Collection, Corpus, Transcript, Utterance, DerivedTokens, Tags
 from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
-    SenseSerializer, DerivedTokensSerializer, TagsSerializer
+    SenseSerializer, DerivedTokensSerializer, TagsSerializer, UserSerializerWithToken, UserSerializer
 from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
 lemmatizer = WordNetLemmatizer()
+
+
+@api_view(['GET'])
+def current_user(request):
+    """
+    Determine the current user by their token, and return their data
+    """
+
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+
+class ListUser(generics.ListAPIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = UserSerializerWithToken(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ListCollection(generics.ListAPIView):

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import { Icon, Intent, NumericInput, Button } from "@blueprintjs/core";
-import { IconNames } from "@blueprintjs/icons";
+import { Icon, NumericInput, Button } from "@blueprintjs/core";
 import Select from "react-select";
 
 class ContentSelection extends Component {
@@ -16,6 +15,7 @@ class ContentSelection extends Component {
       selectedTranscriptID: ""
     };
 
+    this.loadCollection = this.loadCollection.bind(this);
     this.handleCollectionChange = this.handleCollectionChange.bind(this);
     this.loadCorporaForSelectedCollection = this.loadCorporaForSelectedCollection.bind(
       this
@@ -28,9 +28,13 @@ class ContentSelection extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  async componentDidMount() {
+  async loadCollection() {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/get_collection/");
+      const res = await fetch("http://127.0.0.1:8000/api/get_collection/", {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      });
       const collections = await res.json();
       this.setState({
         collections: collections
@@ -40,10 +44,32 @@ class ContentSelection extends Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
+      if (nextProps.isLoggedIn) {
+          this.loadCollection();
+      } else {
+        this.setState({
+            collections: [],
+            corpora: [],
+            transcripts: [],
+            selectedCollectionID: "",
+            selectedCorpusID: "",
+            selectedTranscriptID: ""
+        })
+      }
+    }
+  }
+
   async loadCorporaForSelectedCollection(collectionID) {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/get_corpora?collection_id=${collectionID}`
+        `http://127.0.0.1:8000/api/get_corpora?collection_id=${collectionID}`,
+          {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      }
       );
       const corpora = await res.json();
       this.setState({
@@ -57,7 +83,11 @@ class ContentSelection extends Component {
   async loadTranscriptsForSelectedCorpus(corpusID) {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/get_transcripts?corpus_id=${corpusID}`
+        `http://127.0.0.1:8000/api/get_transcripts?corpus_id=${corpusID}`, {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      }
       );
       const transcripts = await res.json();
       this.setState({

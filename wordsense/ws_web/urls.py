@@ -14,5 +14,7 @@ urlpatterns = [
     re_path(r'^get_senses/$', views.ListSenses.as_view(), name='sense-example'),
     re_path(r'^get_tags/$', views.ListCreateAnnotation.as_view(), name='list-tag'),
     re_path(r'^save/$', views.ListCreateAnnotation.as_view(), name='save-tag'),
-    path('', views.ListCollection.as_view()),
+    re_path(r'^signup/$', views.ListUser.as_view(), name='sign-up'),
+    re_path(r'^current_user/$', views.current_user),
+    path('', views.ListCollection.as_view())
 ]

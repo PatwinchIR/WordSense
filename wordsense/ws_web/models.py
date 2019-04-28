@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
@@ -23,7 +24,7 @@ class Participant(models.Model):
         ("in_lab_staff", "In-lab Trained Staff")
     )
 
-    username = models.CharField(max_length=40, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     user_type = models.CharField(
         max_length=20, choices=USER_TYPE, default="in_lab_staff")
     browser_display_lang = models.CharField(

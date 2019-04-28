@@ -198,3 +198,13 @@
   text-decoration: underline;
   transform: translateX(15px) translateY(-6px);
 }
+
+.signup-form input {
+    display: block;
+  margin: 5px 0 5px;
+}
+
+.login-form input {
+    display: block;
+  margin: 5px 0 5px;
+}

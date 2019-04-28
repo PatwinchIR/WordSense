@@ -96,7 +96,12 @@ class UtteranceDisplay extends Component {
   async loadUtterancesForSelectedTranscript(transcriptID) {
     try {
       await fetch(
-        `http://127.0.0.1:8000/api/get_utterances?transcript_id=${transcriptID}`
+        `http://127.0.0.1:8000/api/get_utterances?transcript_id=${transcriptID}`,
+           {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        }
+      }
       )
         .then(res => {
           if (res.ok) {
@@ -120,7 +125,7 @@ class UtteranceDisplay extends Component {
             intent: Intent.DANGER,
             message: (
               <>
-                <em>Oops! </em> Invalid Transcript ID
+                <em>Oops! </em> {error.toString()}
               </>
             )
           });
@@ -180,7 +185,7 @@ class UtteranceDisplay extends Component {
   }
 
   render() {
-    return (
+    return (this.props.isLoggedIn &&
       <div id="utterances">
         {this.state.loading && (
           <Spinner
