@@ -15,16 +15,14 @@ class DatabaseRouter:
         """
         Attempts to write custom models.
         """
-        if model._meta.app_label == 'childesdb':
-            return 'childesdb'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
         """
         Allow relations if a model in the ws app is involved.
         """
-        if obj1._meta.app_label == 'ws' or \
-                obj2._meta.app_label == 'ws':
+        if obj1._meta.app_label == 'ws_web' or \
+                obj2._meta.app_label == 'ws_web':
             return True
         return None
 
@@ -33,6 +31,6 @@ class DatabaseRouter:
         Make sure the auth app only appears in the 'auth_db'
         database.
         """
-        if app_label == 'ws':
+        if app_label == 'ws_web':
             return db == 'default'
         return None

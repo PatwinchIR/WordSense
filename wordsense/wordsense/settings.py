@@ -25,7 +25,7 @@ SECRET_KEY = 'h6_d1buz#r)v0dje^6w_dus9-wzziivjld*ja=p+os*opuvht1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.0.24']
 
 
 # Application definition
@@ -66,9 +66,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:3000/'
-)
+CORS_ORIGIN_ALLOW_ALL = True
 
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.utils.jwt_response_handler'

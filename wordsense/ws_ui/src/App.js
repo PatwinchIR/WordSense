@@ -10,28 +10,52 @@ import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 import {H1, H4, Overlay, Tabs, Tab, Classes, Toaster, Intent} from "@blueprintjs/core";
 import classNames from "classnames";
+import Fingerprint2 from 'fingerprintjs2';
+import {BASE_URL} from "./Constants";
 
 const OVERLAY_CLASS = "docs-overlay-example-transition";
 
 class App extends Component {
+  initialState = {
+          isLoggedIn: !!localStorage.getItem('word_sense_token'),
+          username: "",
+          participantId: null,
+          tabId: "login",
+
+          selectedTranscriptID: "-1",
+          prevSelectedTranscriptID: "-1",
+          inputUtteranceIndex: "",
+          prevInputUtteranceIndex: "",
+          idGlossPos: "",
+          activeWord: -1,
+          utteranceIndexForTagStatusChange: -1,
+          utteranceIndex: -1,
+          tokenIndex: -1,
+          fingerprint: {}
+      };
+
   constructor(props) {
     super(props);
 
-    this.state = {
-      isLoggedIn: !!localStorage.getItem('word_sense_token'),
-        username: "",
-      tabId: "login",
+    this.state = this.initialState;
 
-      selectedTranscriptID: "-1",
-      prevSelectedTranscriptID: "-1",
-      inputUtteranceIndex: "",
-      prevInputUtteranceIndex: "",
-      idGlossPos: "",
-      activeWord: -1,
-      utteranceIndexForTagStatusChange: -1,
-      utteranceIndex: -1,
-      tokenIndex: -1
-    };
+    const thisapp = this;
+    Fingerprint2.get({}, function (components) {
+		  thisapp.setState({
+              fingerprint:
+                  (
+                      components.filter(
+                          component => {
+                            return component.key === "userAgent" ||
+                                component.key === "language" ||
+                                component.key === "platform"
+                          }
+                          )
+                  ).reduce(
+                      (accum, item) => {accum[item.key] = item.value; return accum}, {}
+                  )
+		  });
+		});
 
     this.handleTranscriptChange = this.handleTranscriptChange.bind(this);
     this.handleTranscriptIdInput = this.handleTranscriptIdInput.bind(this);
@@ -44,14 +68,14 @@ class App extends Component {
 
   componentDidMount() {
     if (this.state.isLoggedIn) {
-      fetch('http://localhost:8000/api/current_user/', {
+      fetch(`${BASE_URL}/api/current_user/`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
         }
       })
         .then(res => res.json())
         .then(json => {
-          this.setState({ username: json.username });
+          this.setState({ isLoggedIn: true, username: json.username, participantId: json.participant_id });
         });
     }
   }
@@ -143,7 +167,7 @@ class App extends Component {
 
   handleLogin(e, data) {
     e.preventDefault();
-    fetch('http://127.0.0.1:8000/token-auth/', {
+    fetch(`${BASE_URL}/token-auth/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -160,7 +184,8 @@ class App extends Component {
             localStorage.setItem('word_sense_token', json.token);
             this.setState({
                 isLoggedIn: true,
-                username: json.user.username
+                username: json.user.username,
+                participantId: json.user.participant_id
             });
         })
         .catch(error => {
@@ -178,12 +203,15 @@ class App extends Component {
 
   handleSignup(e, data) {
     e.preventDefault();
-    fetch('http://127.0.0.1:8000/api/signup/', {
+    fetch(`${BASE_URL}/api/signup/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+          userdata: data,
+          fingerprint: this.state.fingerprint
+      })
     }).then(res => {
           if (res.ok) {
             return res.json();
@@ -195,7 +223,8 @@ class App extends Component {
             localStorage.setItem('word_sense_token', json.token);
         this.setState({
           isLoggedIn: true,
-          username: json.username
+          username: json.username,
+          participantId: json.participant_id
         });
         })
         .catch(error => {
@@ -213,7 +242,7 @@ class App extends Component {
 
   handleLogout() {
     localStorage.removeItem('word_sense_token');
-    this.setState({ isLoggedIn: false, username: '' });
+    this.setState({isLoggedIn: false, username: "", participantId: null});
   };
 
   handleTabChange = tabId => {
@@ -228,7 +257,7 @@ class App extends Component {
         );
 
     return [
-      <div id="banner">
+        <div id="banner">
         <H1>WordSense</H1>
           <H4>Welcome, {this.state.username}</H4>
           <div onClick={this.handleLogout}>Log Out</div>
@@ -248,7 +277,7 @@ class App extends Component {
           handleTranscriptIdInput={this.handleTranscriptIdInput}
           selectedTranscriptID={this.state.selectedTranscriptID}
           inputTranscriptId={
-            this.state.selectedTranscriptID !== ""
+            this.state.selectedTranscriptID !== "-1"
               ? this.state.selectedTranscriptID.value
               : ""
           }
@@ -256,6 +285,7 @@ class App extends Component {
         />
         <UtteranceDisplay
             isLoggedIn={this.state.isLoggedIn}
+            participantId={this.state.participantId}
           selectedTranscriptID={this.state.selectedTranscriptID.value}
           inputUtteranceIndex={this.state.inputUtteranceIndex}
           handleGlossClick={this.handleGlossClick}
@@ -269,6 +299,7 @@ class App extends Component {
       <div id="lower-container">
         <SenseDisplay
             isLoggedIn={this.state.isLoggedIn}
+            participantId={this.state.participantId}
           idGlossPos={this.state.idGlossPos}
           changeTagStatus={this.changeTagStatus}
           utteranceIndex={this.state.utteranceIndex}

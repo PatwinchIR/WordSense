@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { WithStore } from "pure-react-carousel";
+import {CONTEXT_LENGTH} from "./Constants";
 
 class Utterance extends Component {
   constructor(props) {
@@ -11,7 +12,7 @@ class Utterance extends Component {
   }
 
   changeUtteranceStyle() {
-    if (this.props.index === this.props.currentSlide + 4) {
+    if (this.props.index === this.props.currentSlide + CONTEXT_LENGTH) {
       return "currentFocus";
     } else {
       return null;
@@ -19,14 +20,14 @@ class Utterance extends Component {
   }
 
   componentDidUpdate() {
-    if (this.props.index === this.props.currentSlide + 4) {
+    if (this.props.index === this.props.currentSlide + CONTEXT_LENGTH) {
       this.props.setDisplayFocus(this.props.utterance, this.props.index);
     } else {
     }
   }
 
   componentDidMount() {
-    if (this.props.index === this.props.currentSlide + 4) {
+    if (this.props.index === this.props.currentSlide + CONTEXT_LENGTH) {
       this.props.setDisplayFocus(this.props.utterance, this.props.index);
     } else {
     }
@@ -38,9 +39,9 @@ class Utterance extends Component {
     return [
       <div id="utterance" className={this.changeUtteranceStyle()}>
         {" "}
-        <div id="utterance-index-column">
-          {this.props.index - 4 >= 0 ? `${this.props.index - 4}:` : ""}
-        </div>
+        <span id="utterance-index-column">
+          {this.props.index - CONTEXT_LENGTH >= 0 ? `${this.props.index - CONTEXT_LENGTH}:` : ""}
+        </span>
         {utterance.speaker_role}
         {utterance.speaker_role === "" ? "" : ": "}
         {utterance.id_gloss_pos.map((idGlossPos, tokenIndex) => {
@@ -53,13 +54,13 @@ class Utterance extends Component {
                   this.props.index,
                   tokenIndex
                 );
-                if (this.props.index !== this.props.currentSlide + 4) {
+                if (this.props.index !== this.props.currentSlide + CONTEXT_LENGTH) {
                   this.props.setDisplayFocus(
                     this.props.utterance,
                     this.props.index
                   );
                   this.props.carouselStore.setStoreState({
-                    currentSlide: this.props.index - 4
+                    currentSlide: this.props.index - CONTEXT_LENGTH
                   });
                 }
               }}

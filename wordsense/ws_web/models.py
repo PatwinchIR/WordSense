@@ -24,7 +24,7 @@ class Participant(models.Model):
         ("in_lab_staff", "In-lab Trained Staff")
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     user_type = models.CharField(
         max_length=20, choices=USER_TYPE, default="in_lab_staff")
     browser_display_lang = models.CharField(
@@ -99,31 +99,31 @@ class Corpus(models.Model):
         app_label = 'childesdb'
 
 
-class Participant(models.Model):
-    code = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    role = models.CharField(max_length=255, blank=True, null=True)
-    language = models.CharField(max_length=255, blank=True, null=True)
-    group = models.CharField(max_length=255, blank=True, null=True)
-    sex = models.CharField(max_length=255, blank=True, null=True)
-    ses = models.CharField(max_length=255, blank=True, null=True)
-    education = models.CharField(max_length=255, blank=True, null=True)
-    custom = models.CharField(max_length=255, blank=True, null=True)
-    corpus = models.ForeignKey(
-        Corpus, models.DO_NOTHING, blank=True, null=True)
-    max_age = models.FloatField(blank=True, null=True)
-    min_age = models.FloatField(blank=True, null=True)
-    target_child = models.ForeignKey(
-        'self', models.DO_NOTHING, blank=True, null=True)
-    collection = models.ForeignKey(
-        Collection, models.DO_NOTHING, blank=True, null=True)
-    collection_name = models.CharField(max_length=255, blank=True, null=True)
-    corpus_name = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'participant'
-        app_label = 'childesdb'
+# class Participant(models.Model):
+#     code = models.CharField(max_length=255, blank=True, null=True)
+#     name = models.CharField(max_length=255, blank=True, null=True)
+#     role = models.CharField(max_length=255, blank=True, null=True)
+#     language = models.CharField(max_length=255, blank=True, null=True)
+#     group = models.CharField(max_length=255, blank=True, null=True)
+#     sex = models.CharField(max_length=255, blank=True, null=True)
+#     ses = models.CharField(max_length=255, blank=True, null=True)
+#     education = models.CharField(max_length=255, blank=True, null=True)
+#     custom = models.CharField(max_length=255, blank=True, null=True)
+#     corpus = models.ForeignKey(
+#         Corpus, models.DO_NOTHING, blank=True, null=True)
+#     max_age = models.FloatField(blank=True, null=True)
+#     min_age = models.FloatField(blank=True, null=True)
+#     target_child = models.ForeignKey(
+#         'self', models.DO_NOTHING, blank=True, null=True)
+#     collection = models.ForeignKey(
+#         Collection, models.DO_NOTHING, blank=True, null=True)
+#     collection_name = models.CharField(max_length=255, blank=True, null=True)
+#     corpus_name = models.CharField(max_length=255, blank=True, null=True)
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'participant'
+#         app_label = 'childesdb'
 
 
 class Token(models.Model):

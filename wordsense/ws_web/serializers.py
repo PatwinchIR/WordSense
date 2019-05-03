@@ -3,15 +3,20 @@
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags
+from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags, Participant
 from django.contrib.auth.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    participant_id = serializers.SerializerMethodField()
+
+    def get_participant_id(self, obj):
+        participant_id = Participant.objects.get(user=obj.id).id
+        return participant_id
 
     class Meta:
         model = User
-        fields = ('username',)
+        fields = ('username', 'participant_id')
 
 
 class UserSerializerWithToken(serializers.ModelSerializer):
@@ -37,6 +42,13 @@ class UserSerializerWithToken(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('token', 'username', 'password')
+
+
+class ParticipantSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = Participant
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -72,15 +84,23 @@ class SenseSerializer(serializers.Serializer):
     offset = serializers.SerializerMethodField()
     sense = serializers.SerializerMethodField()
     examples = serializers.SerializerMethodField()
+    number_of_tags = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('offset', 'sense', 'examples')
+        fields = ('offset', 'sense', 'examples', 'number_of_tags')
 
     def get_offset(self, obj):
         return obj.offset()
 
     def get_sense(self, obj):
         return obj.definition()
+
+    def get_number_of_tags(self, obj):
+        qryset = Tags.objects.filter(
+            sense_offset=obj.offset(),
+            token=self.context['token_id']
+        )
+        return len(qryset)
 
     def get_examples(self, obj):
         return obj.examples()
@@ -111,7 +131,8 @@ class DerivedTokensSerializer(serializers.ModelSerializer):
             return "UNTAGGABLE"
         qryset = Tags.objects.filter(
             gloss_with_replacement=obj.gloss_with_replacement,
-            token_id=obj.id
+            token_id=obj.id,
+            participant=self.context['participant_id']
         )
         return "TAGGED" if len(qryset) >= 1 else "TAGGABLE"
 

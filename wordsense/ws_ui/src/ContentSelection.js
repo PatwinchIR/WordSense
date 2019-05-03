@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Icon, NumericInput, Button } from "@blueprintjs/core";
 import Select from "react-select";
+import { BASE_URL } from "./Constants";
 
 class ContentSelection extends Component {
   constructor(props) {
@@ -30,7 +31,7 @@ class ContentSelection extends Component {
 
   async loadCollection() {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/get_collection/", {
+      const res = await fetch(`${BASE_URL}/api/get_collection/`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
         }
@@ -64,7 +65,7 @@ class ContentSelection extends Component {
   async loadCorporaForSelectedCollection(collectionID) {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/get_corpora?collection_id=${collectionID}`,
+        `${BASE_URL}/api/get_corpora/?collection_id=${collectionID}`,
           {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
@@ -83,7 +84,7 @@ class ContentSelection extends Component {
   async loadTranscriptsForSelectedCorpus(corpusID) {
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/get_transcripts?corpus_id=${corpusID}`, {
+        `${BASE_URL}/api/get_transcripts/?corpus_id=${corpusID}`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
         }
@@ -178,6 +179,7 @@ class ContentSelection extends Component {
             buttonPosition="none"
             placeholder="Enter Utterance Index..."
             value={this.props.inputUtteranceIndex}
+            min={0}
           />
           <Button type="submit">GO</Button>
         </div>

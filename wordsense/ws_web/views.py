@@ -10,7 +10,8 @@ from rest_framework.response import Response
 
 from ws_web.models import Collection, Corpus, Transcript, Utterance, DerivedTokens, Tags
 from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
-    SenseSerializer, DerivedTokensSerializer, TagsSerializer, UserSerializerWithToken, UserSerializer
+    SenseSerializer, DerivedTokensSerializer, TagsSerializer, UserSerializerWithToken, UserSerializer, \
+    ParticipantSerializer
 from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
@@ -31,10 +32,28 @@ class ListUser(generics.ListAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
-        serializer = UserSerializerWithToken(data=request.data)
+        data = request.data
+
+        userdata = data['userdata']
+        fingerprint = data['fingerprint']
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
+        serializer = UserSerializerWithToken(data=userdata)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            new_user = serializer.save()
+            participant_serializer = ParticipantSerializer(data={
+                'user': new_user.id,
+                'user_type': 'in_lab_staff',
+                'browser_display_lang': fingerprint['language'],
+                'browser_user_agent': fingerprint['userAgent'],
+                'browser_platform': fingerprint['platform'],
+                'ip': x_forwarded_for if x_forwarded_for else request.META.get('REMOTE_ADDR')
+            })
+            response_data = serializer.data
+            if participant_serializer.is_valid():
+                new_participant = participant_serializer.save()
+                response_data['participantId'] = new_participant.id
+            return Response(data=response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -78,10 +97,11 @@ class ListDerivedTokens(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         transcript_id = request.query_params['transcript_id']
+        participant_id = request.query_params['participant_id']
         self.queryset = DerivedTokens.objects.get_queryset().filter(
             transcript_id=transcript_id).order_by('utterance_id', 'token_id')
         if len(self.queryset) > 0:
-            serializer = DerivedTokensSerializer(self.queryset, many=True)
+            serializer = DerivedTokensSerializer(self.queryset, many=True, context={'participant_id': participant_id})
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -93,10 +113,11 @@ class ListSenses(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         pos = request.query_params['pos']
+        token_id = request.query_params['token_id']
         word = lemmatizer.lemmatize(request.query_params['gloss'], pos)
 
         synsets = wn.synsets(word, pos)
-        serializer = SenseSerializer(synsets, many=True)
+        serializer = SenseSerializer(synsets, many=True, context={'token_id': token_id})
         return Response(serializer.data)
 
 
@@ -106,9 +127,12 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         gloss_with_replacement = request.query_params['gloss_with_replacement']
         token_id = request.query_params['token_id']
+        participant_id = request.query_params['participant_id']
         self.queryset = Tags.objects.filter(
             gloss_with_replacement=gloss_with_replacement,
-            token_id=token_id).values_list('sense_offset', flat=True)
+            token_id=token_id,
+            participant=participant_id
+        ).values_list('sense_offset', flat=True)
         data = list(self.queryset)
         return Response(data=data, status=status.HTTP_200_OK)
 
@@ -116,7 +140,9 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         data = request.data
         existing_sense_offsets = set(Tags.objects.filter(
             gloss_with_replacement=data['gloss_with_replacement'],
-            token_id=data['token']).values_list('sense_offset', flat=True))
+            token_id=data['token'],
+            participant=data['participant']
+        ).values_list('sense_offset', flat=True))
         if set(data['sense_offsets']) == existing_sense_offsets:
             return Response(status=status.HTTP_302_FOUND)
         else:
@@ -126,6 +152,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 qryset = Tags.objects.filter(
                     gloss_with_replacement=data['gloss_with_replacement'],
                     token_id=data['token'],
+                    participant=data['participant'],
                     sense_offset=offset
                 )
                 for obj in qryset:

@@ -7,6 +7,7 @@
     "@blueprintjs/select": "^3.8.0",
     "@blueprintjs/table": "^3.5.0",
     "classnames": "^2.2.6",
+    "fingerprintjs2": "^2.0.6",
     "formik": "^1.5.1",
     "pure-react-carousel": "^1.19.4",
     "react": "^16.8.6",

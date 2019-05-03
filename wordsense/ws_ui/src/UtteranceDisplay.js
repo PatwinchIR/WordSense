@@ -5,6 +5,7 @@ import ButtonDiv from "./ButtonDiv";
 import Restart from "./Restart";
 import "pure-react-carousel/dist/react-carousel.es.css";
 import { Spinner, Button, Toaster, Intent } from "@blueprintjs/core";
+import {CONTEXT_LENGTH, UTTERANCE_TO_DISPLAY, BASE_URL} from "./Constants";
 
 class UtteranceDisplay extends Component {
   constructor(props) {
@@ -20,8 +21,6 @@ class UtteranceDisplay extends Component {
       confirmed: false,
       inputUtteranceIndex: 0
     };
-
-    const rowsDisplaying = 9;
 
     this.loadUtterancesForSelectedTranscript = this.loadUtterancesForSelectedTranscript.bind(
       this
@@ -58,7 +57,7 @@ class UtteranceDisplay extends Component {
       backwardStep: 0
     };
 
-    for (let i = 0; i < 4; i++) results.push(emptyUtterance);
+    for (let i = 0; i < CONTEXT_LENGTH; i++) results.push(emptyUtterance);
 
     Object.keys(utterances)
       .sort((a, b) => a - b)
@@ -89,14 +88,17 @@ class UtteranceDisplay extends Component {
         }
       }
     });
-    console.log(results);
     return results;
   }
 
   async loadUtterancesForSelectedTranscript(transcriptID) {
+    if (transcriptID === null) {
+      console.log(-1);
+        return;
+    }
     try {
       await fetch(
-        `http://127.0.0.1:8000/api/get_utterances?transcript_id=${transcriptID}`,
+        `${BASE_URL}/api/get_utterances/?transcript_id=${transcriptID}&participant_id=${this.props.participantId}`,
            {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
@@ -142,7 +144,21 @@ class UtteranceDisplay extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.selectedTranscriptID !== nextProps.selectedTranscriptID) {
+    if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
+      if (!nextProps.isLoggedIn) {
+        this.setState({
+            clickedTokenId: "",
+            clickedGloss: "",
+            utterances: [],
+            displayFocusIndex: 0,
+            displayFocusUtterance: [],
+            loading: false,
+            confirmed: false,
+            inputUtteranceIndex: 0
+        })
+      }
+    }
+    if (this.props.selectedTranscriptID !== nextProps.selectedTranscriptID && nextProps.selectedTranscriptID !== undefined) {
       this.setState({
         loading: true,
         confirmed: false
@@ -151,7 +167,7 @@ class UtteranceDisplay extends Component {
     }
     if (
       this.props.utteranceIndexForTagStatusChange !==
-      nextProps.utteranceIndexForTagStatusChange
+      nextProps.utteranceIndexForTagStatusChange && nextProps.utteranceIndexForTagStatusChange !== -1
     ) {
       let utterances = [...this.state.utterances];
       let utterance = {
@@ -163,12 +179,12 @@ class UtteranceDisplay extends Component {
       utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
       this.setState({ utterances: utterances });
     }
-    if (this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex) {
+    if (this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex && nextProps.inputUtteranceIndex !== "") {
       this.setState({
-        inputUtteranceIndex: Math.min(
+        inputUtteranceIndex: Math.max(0, Math.min(
           parseInt(nextProps.inputUtteranceIndex),
           this.state.utterances.length - 1
-        )
+        ))
       });
     }
   }
@@ -220,10 +236,10 @@ class UtteranceDisplay extends Component {
         {this.state.confirmed && (
           <CarouselProvider
             naturalSlideWidth={50}
-            naturalSlideHeight={2.5}
+            naturalSlideHeight={1.5}
             totalSlides={this.state.utterances.length}
             orientation="vertical"
-            visibleSlides={9}
+            visibleSlides={UTTERANCE_TO_DISPLAY}
             currentSlide={this.state.inputUtteranceIndex}
             lockOnWindowScroll={false}
             dragEnabled={false}

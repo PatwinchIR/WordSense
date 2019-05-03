@@ -16,6 +16,7 @@ import {
   ButtonFirst,
   ButtonLast
 } from "pure-react-carousel";
+import {CONTEXT_LENGTH, BASE_URL} from "./Constants";
 
 class SenseDisplay extends Component {
   constructor(props) {
@@ -37,7 +38,7 @@ class SenseDisplay extends Component {
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
     try {
       const sensesRes = await fetch(
-        `http://127.0.0.1:8000/api/get_senses?gloss=${gloss}&pos=${pos}`,
+        `${BASE_URL}/api/get_senses/?gloss=${gloss}&pos=${pos}&token_id=${token_id}`,
            {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
@@ -45,7 +46,7 @@ class SenseDisplay extends Component {
       }
       );
       const tagsRes = await fetch(
-        `http://127.0.0.1:8000/api/get_tags?gloss_with_replacement=${gloss}&token_id=${token_id}`,
+        `${BASE_URL}/api/get_tags/?gloss_with_replacement=${gloss}&token_id=${token_id}&participant_id=${this.props.participantId}`,
            {
         headers: {
           Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
@@ -67,12 +68,23 @@ class SenseDisplay extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
+      if (!nextProps.isLoggedIn) {
+        this.setState({
+            senses: [],
+            selectedSenses: [],
+            saveStatus: "",
+            saveDisabled: false,
+            originalSenses: []
+        })
+      }
+    }
     if (this.props.transcriptId !== nextProps.transcriptId) {
       this.setState({
         senses: []
       });
     }
-    if (this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id) {
+    if (this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id && nextProps.idGlossPos.token_id !== undefined) {
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
         nextProps.idGlossPos.gloss,
@@ -110,7 +122,7 @@ class SenseDisplay extends Component {
 
   handleFormSubmit(event) {
     event.preventDefault();
-    fetch("http://127.0.0.1:8000/api/save/", {
+    fetch(`${BASE_URL}/api/save/`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -121,7 +133,7 @@ class SenseDisplay extends Component {
         gloss_with_replacement: this.props.idGlossPos.gloss,
         token: this.props.idGlossPos.token_id,
         sense_offsets: this.state.selectedSenses,
-        participant: 1
+        participant: this.props.participantId
       })
     }).then(response => {
       const toaster = Toaster.create(this.props);
@@ -181,7 +193,7 @@ class SenseDisplay extends Component {
           </Text>
           <Text>
             (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
-            {this.props.utteranceIndex - 4})
+            {this.props.utteranceIndex - CONTEXT_LENGTH})
           </Text>
           <form onSubmit={this.handleFormSubmit}>
             <div className="bp3-card bp3-elevation-1">
@@ -193,6 +205,7 @@ class SenseDisplay extends Component {
                   <tr>
                     <th>Senses</th>
                     <th>Examples</th>
+                    <th># of Tags</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,6 +243,9 @@ class SenseDisplay extends Component {
                           <ButtonNext>{">"}</ButtonNext>
                           <ButtonLast>{">>"}</ButtonLast>
                         </CarouselProvider>
+                      </td>
+                      <td>
+                          {sense_example.number_of_tags}
                       </td>
                     </tr>
                   ])}
