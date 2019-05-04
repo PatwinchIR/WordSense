@@ -1,1 +1,1 @@
-web: gunicorn wordsense.wsgi --log-file -
+web: gunicorn wordsense.wordsense.wsgi --log-file -
