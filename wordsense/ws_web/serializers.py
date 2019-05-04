@@ -98,7 +98,7 @@ class SenseSerializer(serializers.Serializer):
     def get_number_of_tags(self, obj):
         qryset = Tags.objects.filter(
             sense_offset=obj.offset(),
-            token=self.context['token_id']
+            token_id=self.context['token_id']
         )
         return len(qryset)
 

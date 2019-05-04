@@ -5,7 +5,12 @@ import ButtonDiv from "./ButtonDiv";
 import Restart from "./Restart";
 import "pure-react-carousel/dist/react-carousel.es.css";
 import { Spinner, Button, Toaster, Intent } from "@blueprintjs/core";
-import {CONTEXT_LENGTH, UTTERANCE_TO_DISPLAY, BASE_URL} from "./Constants";
+import {
+  CONTEXT_LENGTH,
+  UTTERANCE_TO_DISPLAY,
+  BASE_URL,
+  PUBLIC_URL
+} from "./Constants";
 
 class UtteranceDisplay extends Component {
   constructor(props) {
@@ -93,23 +98,30 @@ class UtteranceDisplay extends Component {
 
   async loadUtterancesForSelectedTranscript(transcriptID) {
     if (transcriptID === null) {
-      console.log(-1);
-        return;
+      return;
     }
     try {
       await fetch(
-        `${BASE_URL}/api/get_utterances/?transcript_id=${transcriptID}&participant_id=${this.props.participantId}`,
-           {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        `${BASE_URL}/api/${
+          this.props.isPublic ? PUBLIC_URL : ""
+        }get_utterances/?transcript_id=${transcriptID}&participant_id=${
+          this.props.participantId
+        }`,
+        {
+          headers: {
+            Authorization: this.props.isPublic
+              ? ""
+              : `JWT ${localStorage.getItem("word_sense_token")}`
+          }
         }
-      }
       )
         .then(res => {
           if (res.ok) {
             return res.json();
           } else {
-            throw new Error("Invalid Transcript ID");
+            throw new Error(
+              this.props.isPublic ? "Fetching Error" : res.statusText
+            );
           }
         })
         .then(utterances =>
@@ -118,7 +130,7 @@ class UtteranceDisplay extends Component {
             loading: false,
             displayFocusUtterance: [],
             displayFocusIndex: 0,
-            confirmed: false
+            confirmed: this.props.isPublic
           })
         )
         .catch(error => {
@@ -143,22 +155,35 @@ class UtteranceDisplay extends Component {
     }
   }
 
+  componentDidMount() {
+    if (this.props.isPublic) {
+      this.setState({
+        loading: true,
+        confirmed: true
+      });
+      this.loadUtterancesForSelectedTranscript(-1);
+    }
+  }
+
   componentWillReceiveProps(nextProps) {
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (!nextProps.isLoggedIn) {
         this.setState({
-            clickedTokenId: "",
-            clickedGloss: "",
-            utterances: [],
-            displayFocusIndex: 0,
-            displayFocusUtterance: [],
-            loading: false,
-            confirmed: false,
-            inputUtteranceIndex: 0
-        })
+          clickedTokenId: "",
+          clickedGloss: "",
+          utterances: [],
+          displayFocusIndex: 0,
+          displayFocusUtterance: [],
+          loading: false,
+          confirmed: false,
+          inputUtteranceIndex: 0
+        });
       }
     }
-    if (this.props.selectedTranscriptID !== nextProps.selectedTranscriptID && nextProps.selectedTranscriptID !== undefined) {
+    if (
+      this.props.selectedTranscriptID !== nextProps.selectedTranscriptID &&
+      nextProps.selectedTranscriptID !== undefined
+    ) {
       this.setState({
         loading: true,
         confirmed: false
@@ -167,7 +192,8 @@ class UtteranceDisplay extends Component {
     }
     if (
       this.props.utteranceIndexForTagStatusChange !==
-      nextProps.utteranceIndexForTagStatusChange && nextProps.utteranceIndexForTagStatusChange !== -1
+        nextProps.utteranceIndexForTagStatusChange &&
+      nextProps.utteranceIndexForTagStatusChange !== -1
     ) {
       let utterances = [...this.state.utterances];
       let utterance = {
@@ -179,12 +205,18 @@ class UtteranceDisplay extends Component {
       utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
       this.setState({ utterances: utterances });
     }
-    if (this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex && nextProps.inputUtteranceIndex !== "") {
+    if (
+      this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex &&
+      nextProps.inputUtteranceIndex !== ""
+    ) {
       this.setState({
-        inputUtteranceIndex: Math.max(0, Math.min(
-          parseInt(nextProps.inputUtteranceIndex),
-          this.state.utterances.length - 1
-        ))
+        inputUtteranceIndex: Math.max(
+          0,
+          Math.min(
+            parseInt(nextProps.inputUtteranceIndex),
+            this.state.utterances.length - 1
+          )
+        )
       });
     }
   }
@@ -201,81 +233,91 @@ class UtteranceDisplay extends Component {
   }
 
   render() {
-    return (this.props.isLoggedIn &&
-      <div id="utterances">
-        {this.state.loading && (
-          <Spinner
-            className="spinner"
-            intent={"primary"}
-            size={50}
-            value={null}
-          />
-        )}
-        {this.props.selectedTranscriptID !== "-1" &&
-          !this.state.loading &&
-          !this.state.confirmed && [
-            <Button
-              className="button-work-on-this"
-              onClick={this.handleConfirmation}
-              disabled={this.state.utterances.length > 0 ? false : true}
-            >
-              Okay, Work on this!
-            </Button>,
-            <div className="preview-box bp3-card bp3-elevation-1">
-              {this.state.utterances.map(utterance => (
-                <div>
-                  {utterance.speaker_role}
-                  {utterance.speaker_role === "" ? "" : ": "}
-                  {utterance.id_gloss_pos.map(idGlossPos => (
-                    <span>{idGlossPos.gloss} </span>
+    return (
+      ((!this.props.isPublic && this.props.isLoggedIn) ||
+        this.props.isPublic) && (
+        <div id="utterances">
+          {this.state.loading && (
+            <Spinner
+              className="spinner"
+              intent={"primary"}
+              size={50}
+              value={null}
+            />
+          )}
+          {this.props.selectedTranscriptID !== "-1" &&
+            !this.state.loading &&
+            !this.state.confirmed &&
+            !this.props.isPublic && [
+              ((
+                <Button
+                  className="button-work-on-this"
+                  onClick={this.handleConfirmation}
+                  disabled={this.state.utterances.length <= 0}
+                >
+                  Okay, Work on this!
+                </Button>
+              ),
+              (
+                <div className="preview-box bp3-card bp3-elevation-1">
+                  {this.state.utterances.map(utterance => (
+                    <div>
+                      {utterance.speaker_role}
+                      {utterance.speaker_role === "" ? "" : ": "}
+                      {utterance.id_gloss_pos.map(idGlossPos => (
+                        <span>{idGlossPos.gloss} </span>
+                      ))}
+                    </div>
                   ))}
                 </div>
-              ))}
-            </div>
-          ]}
-        {this.state.confirmed && (
-          <CarouselProvider
-            naturalSlideWidth={50}
-            naturalSlideHeight={1.5}
-            totalSlides={this.state.utterances.length}
-            orientation="vertical"
-            visibleSlides={UTTERANCE_TO_DISPLAY}
-            currentSlide={this.state.inputUtteranceIndex}
-            lockOnWindowScroll={false}
-            dragEnabled={false}
-            touchEnabled={false}
-          >
-            <Slider id="content-slider" className="bp3-card bp3-elevation-1">
-              {this.state.utterances.map((utterance, index) => (
-                <Slide index={index}>
-                  <Utterance
-                    utterance={utterance}
-                    index={index}
-                    setDisplayFocus={this.setDisplayFocus}
-                    handleGlossClick={this.props.handleGlossClick}
-                    activeWord={this.props.activeWord}
-                  />
-                </Slide>
-              ))}
-            </Slider>
+              ))
+            ]}
+          {(this.props.isPublic
+            ? !this.state.loading && this.state.confirmed
+            : this.state.confirmed) && (
+            <CarouselProvider
+              naturalSlideWidth={50}
+              naturalSlideHeight={1.5}
+              totalSlides={this.state.utterances.length}
+              orientation="vertical"
+              visibleSlides={UTTERANCE_TO_DISPLAY}
+              currentSlide={this.state.inputUtteranceIndex}
+              lockOnWindowScroll={false}
+              dragEnabled={false}
+              touchEnabled={false}
+            >
+              <Slider id="content-slider" className="bp3-card bp3-elevation-1">
+                {this.state.utterances.map((utterance, index) => (
+                  <Slide index={index}>
+                    <Utterance
+                      utterance={utterance}
+                      index={index}
+                      setDisplayFocus={this.setDisplayFocus}
+                      handleGlossClick={this.props.handleGlossClick}
+                      activeWord={this.props.activeWord}
+                    />
+                  </Slide>
+                ))}
+              </Slider>
 
-            <Restart loading={this.state.loading} />
-            <div id="control-buttons">
-              <ButtonDiv
-                value="backward"
-                displayFocusUtterance={this.state.displayFocusUtterance}
-                displayFocusIndex={this.state.displayFocusIndex}
-              />
+              <Restart loading={this.state.loading} />
+              <div id="control-buttons">
+                <ButtonDiv
+                  value="backward"
+                  displayFocusUtterance={this.state.displayFocusUtterance}
+                  displayFocusIndex={this.state.displayFocusIndex}
+                />
 
-              <ButtonDiv
-                value="forward"
-                displayFocusUtterance={this.state.displayFocusUtterance}
-                displayFocusIndex={this.state.displayFocusIndex}
-              />
-            </div>
-          </CarouselProvider>
-        )}
-      </div>
+                <ButtonDiv
+                  value="forward"
+                  displayFocusUtterance={this.state.displayFocusUtterance}
+                  displayFocusIndex={this.state.displayFocusIndex}
+                />
+              </div>
+            </CarouselProvider>
+          )}
+        </div>
+      )
     );
   }
 }

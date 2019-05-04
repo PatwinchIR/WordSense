@@ -33,7 +33,7 @@ class ContentSelection extends Component {
     try {
       const res = await fetch(`${BASE_URL}/api/get_collection/`, {
         headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+          Authorization: `JWT ${localStorage.getItem("word_sense_token")}`
         }
       });
       const collections = await res.json();
@@ -48,16 +48,16 @@ class ContentSelection extends Component {
   componentWillReceiveProps(nextProps) {
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (nextProps.isLoggedIn) {
-          this.loadCollection();
+        this.loadCollection();
       } else {
         this.setState({
-            collections: [],
-            corpora: [],
-            transcripts: [],
-            selectedCollectionID: "",
-            selectedCorpusID: "",
-            selectedTranscriptID: ""
-        })
+          collections: [],
+          corpora: [],
+          transcripts: [],
+          selectedCollectionID: "",
+          selectedCorpusID: "",
+          selectedTranscriptID: ""
+        });
       }
     }
   }
@@ -66,11 +66,11 @@ class ContentSelection extends Component {
     try {
       const res = await fetch(
         `${BASE_URL}/api/get_corpora/?collection_id=${collectionID}`,
-          {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        {
+          headers: {
+            Authorization: `JWT ${localStorage.getItem("word_sense_token")}`
+          }
         }
-      }
       );
       const corpora = await res.json();
       this.setState({
@@ -84,11 +84,12 @@ class ContentSelection extends Component {
   async loadTranscriptsForSelectedCorpus(corpusID) {
     try {
       const res = await fetch(
-        `${BASE_URL}/api/get_transcripts/?corpus_id=${corpusID}`, {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        `${BASE_URL}/api/get_transcripts/?corpus_id=${corpusID}`,
+        {
+          headers: {
+            Authorization: `JWT ${localStorage.getItem("word_sense_token")}`
+          }
         }
-      }
       );
       const transcripts = await res.json();
       this.setState({

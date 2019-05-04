@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { WithStore } from "pure-react-carousel";
-import {CONTEXT_LENGTH} from "./Constants";
+import { CONTEXT_LENGTH } from "./Constants";
 
 class Utterance extends Component {
   constructor(props) {
@@ -40,7 +40,9 @@ class Utterance extends Component {
       <div id="utterance" className={this.changeUtteranceStyle()}>
         {" "}
         <span id="utterance-index-column">
-          {this.props.index - CONTEXT_LENGTH >= 0 ? `${this.props.index - CONTEXT_LENGTH}:` : ""}
+          {this.props.index - CONTEXT_LENGTH >= 0
+            ? `${this.props.index - CONTEXT_LENGTH}:`
+            : ""}
         </span>
         {utterance.speaker_role}
         {utterance.speaker_role === "" ? "" : ": "}
@@ -54,7 +56,10 @@ class Utterance extends Component {
                   this.props.index,
                   tokenIndex
                 );
-                if (this.props.index !== this.props.currentSlide + CONTEXT_LENGTH) {
+                if (
+                  this.props.index !==
+                  this.props.currentSlide + CONTEXT_LENGTH
+                ) {
                   this.props.setDisplayFocus(
                     this.props.utterance,
                     this.props.index

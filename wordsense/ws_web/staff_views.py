@@ -3,7 +3,7 @@ from itertools import zip_longest
 # Create your views here.
 
 
-# todos/views.py
+# todos/staff_views.py
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -52,7 +52,7 @@ class ListUser(generics.ListAPIView):
             response_data = serializer.data
             if participant_serializer.is_valid():
                 new_participant = participant_serializer.save()
-                response_data['participantId'] = new_participant.id
+                response_data['participant_id'] = new_participant.id
             return Response(data=response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -101,7 +101,8 @@ class ListDerivedTokens(generics.ListAPIView):
         self.queryset = DerivedTokens.objects.get_queryset().filter(
             transcript_id=transcript_id).order_by('utterance_id', 'token_id')
         if len(self.queryset) > 0:
-            serializer = DerivedTokensSerializer(self.queryset, many=True, context={'participant_id': participant_id})
+            serializer = DerivedTokensSerializer(self.queryset, many=True, context={
+                                                 'participant_id': participant_id})
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -117,7 +118,8 @@ class ListSenses(generics.ListAPIView):
         word = lemmatizer.lemmatize(request.query_params['gloss'], pos)
 
         synsets = wn.synsets(word, pos)
-        serializer = SenseSerializer(synsets, many=True, context={'token_id': token_id})
+        serializer = SenseSerializer(
+            synsets, many=True, context={'token_id': token_id})
         return Response(serializer.data)
 
 

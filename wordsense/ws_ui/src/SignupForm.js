@@ -1,11 +1,12 @@
-import React from 'react';
+import React from "react";
 import { Text, Button, InputGroup } from "@blueprintjs/core";
+import { Link } from "react-router-dom";
 
 class SignupForm extends React.Component {
   state = {
-    username: '',
-    password: '',
-      confirmedPassword:''
+    username: "",
+    password: "",
+    confirmedPassword: ""
   };
 
   handleChange = e => {
@@ -20,7 +21,10 @@ class SignupForm extends React.Component {
 
   render() {
     return [
-      <form onSubmit={e => this.props.handleSignup(e, this.state)} className="signup-form">
+      <form
+        onSubmit={e => this.props.handleSignup(e, this.state)}
+        className="signup-form"
+      >
         <h4>Sign Up</h4>
         <label htmlFor="username">Username</label>
         <InputGroup
@@ -36,21 +40,25 @@ class SignupForm extends React.Component {
           value={this.state.password}
           onChange={this.handleChange}
         />
-          <label htmlFor="password">Confirm Password</label>
-          <InputGroup
+        <label htmlFor="password">Confirm Password</label>
+        <InputGroup
           type="password"
           name="confirmedPassword"
           value={this.state.confirmedPassword}
           onChange={this.handleChange}
         />
         <Button
-            intent={"primary"}
-            text={"Sign Up"}
-            type="submit"
-            disabled={this.state.password === "" || this.state.password !== this.state.confirmedPassword}
+          intent={"primary"}
+          text={"Sign Up"}
+          type="submit"
+          disabled={
+            this.state.password === "" ||
+            this.state.password !== this.state.confirmedPassword
+          }
         />
+        <Link to="/">Home</Link>
       </form>,
-        (this.state.password !== this.state.confirmedPassword && <Text>error</Text>)
+      this.state.password !== this.state.confirmedPassword && <Text>error</Text>
     ];
   }
 }

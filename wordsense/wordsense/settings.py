@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/2.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
-
+import datetime
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -44,7 +44,6 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework.permissions.AllowAny',
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -69,7 +68,8 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 JWT_AUTH = {
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.utils.jwt_response_handler'
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.utils.jwt_response_handler',
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=3),
 }
 
 ROOT_URLCONF = 'wordsense.urls'

@@ -16,7 +16,8 @@ import {
   ButtonFirst,
   ButtonLast
 } from "pure-react-carousel";
-import {CONTEXT_LENGTH, BASE_URL} from "./Constants";
+import { CONTEXT_LENGTH, BASE_URL, PUBLIC_URL } from "./Constants";
+import Fingerprint2 from "fingerprintjs2";
 
 class SenseDisplay extends Component {
   constructor(props) {
@@ -27,8 +28,28 @@ class SenseDisplay extends Component {
       selectedSenses: [],
       saveStatus: "",
       saveDisabled: false,
-      originalSenses: []
+      originalSenses: [],
+      fingerprint: {},
+      participantId: undefined
     };
+
+    const thisapp = this;
+    Fingerprint2.get({}, function(components) {
+      thisapp.setState({
+        fingerprint: components
+          .filter(component => {
+            return (
+              component.key === "userAgent" ||
+              component.key === "language" ||
+              component.key === "platform"
+            );
+          })
+          .reduce((accum, item) => {
+            accum[item.key] = item.value;
+            return accum;
+          }, {})
+      });
+    });
 
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
@@ -37,24 +58,49 @@ class SenseDisplay extends Component {
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
     try {
+      var finalParticipantId = this.props.isPublic
+        ? this.state.participantId
+        : this.props.participantId;
       const sensesRes = await fetch(
-        `${BASE_URL}/api/get_senses/?gloss=${gloss}&pos=${pos}&token_id=${token_id}`,
-           {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        `${BASE_URL}/api/${
+          this.props.isPublic ? PUBLIC_URL : ""
+        }get_senses/?gloss=${gloss}&pos=${pos}&token_id=${token_id}`,
+        {
+          headers: {
+            Authorization: this.props.isPublic
+              ? ""
+              : `JWT ${localStorage.getItem("word_sense_token")}`
+          }
         }
-      }
       );
       const tagsRes = await fetch(
-        `${BASE_URL}/api/get_tags/?gloss_with_replacement=${gloss}&token_id=${token_id}&participant_id=${this.props.participantId}`,
-           {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        `${BASE_URL}/api/${
+          this.props.isPublic ? PUBLIC_URL : ""
+        }get_tags/?gloss_with_replacement=${gloss}&token_id=${token_id}&participant_id=${finalParticipantId}`,
+        {
+          headers: {
+            Authorization: this.props.isPublic
+              ? ""
+              : `JWT ${localStorage.getItem("word_sense_token")}`
+          }
         }
-      }
       );
       const senses = await sensesRes.json();
       const tags = await tagsRes.json();
+      if (
+        senses.detail === "Signature has expired." ||
+        tags.detail === "Signature has expired."
+      ) {
+        const toaster = Toaster.create(this.props);
+        toaster.show({
+          intent: Intent.DANGER,
+          message: (
+            <>
+              <em>Oops! </em>Session Expired.
+            </>
+          )
+        });
+      }
       this.setState({
         senses: senses,
         originalSenses: JSON.parse(JSON.stringify(tags)),
@@ -71,12 +117,12 @@ class SenseDisplay extends Component {
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (!nextProps.isLoggedIn) {
         this.setState({
-            senses: [],
-            selectedSenses: [],
-            saveStatus: "",
-            saveDisabled: false,
-            originalSenses: []
-        })
+          senses: [],
+          selectedSenses: [],
+          saveStatus: "",
+          saveDisabled: false,
+          originalSenses: []
+        });
       }
     }
     if (this.props.transcriptId !== nextProps.transcriptId) {
@@ -84,7 +130,10 @@ class SenseDisplay extends Component {
         senses: []
       });
     }
-    if (this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id && nextProps.idGlossPos.token_id !== undefined) {
+    if (
+      this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id &&
+      nextProps.idGlossPos.token_id !== undefined
+    ) {
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
         nextProps.idGlossPos.gloss,
@@ -122,57 +171,76 @@ class SenseDisplay extends Component {
 
   handleFormSubmit(event) {
     event.preventDefault();
-    fetch(`${BASE_URL}/api/save/`, {
+    fetch(`${BASE_URL}/api/${this.props.isPublic ? PUBLIC_URL : ""}save/`, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-          Authorization: `JWT ${localStorage.getItem('word_sense_token')}`
+        Authorization: this.props.isPublic
+          ? ""
+          : `JWT ${localStorage.getItem("word_sense_token")}`
       },
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,
         token: this.props.idGlossPos.token_id,
         sense_offsets: this.state.selectedSenses,
-        participant: this.props.participantId
+        participant: this.props.isPublic
+          ? this.state.participantId
+          : this.props.participantId,
+        fingerprint: this.state.fingerprint
       })
-    }).then(response => {
-      const toaster = Toaster.create(this.props);
-      if (response.status === 202) {
-        toaster.show({
-          icon: "saved",
-          intent: Intent.SUCCESS,
-          message: (
-            <>
-              Sense offsets saved. <em>Yay!</em>
-            </>
-          )
-        });
+    })
+      .then(response => {
+        const toaster = Toaster.create(this.props);
+        if (response.status === 202) {
+          toaster.show({
+            icon: "saved",
+            intent: Intent.SUCCESS,
+            message: (
+              <>
+                Sense offsets saved. <em>Yay!</em>
+              </>
+            )
+          });
+          return response.json();
+        } else if (response.status === 302) {
+          toaster.show({
+            icon: "warning-sign",
+            intent: Intent.WARNING,
+            message: <>Sense offsets already saved.</>
+          });
+          throw new Error("302");
+        } else if (response.status === 401) {
+          toaster.show({
+            intent: Intent.DANGER,
+            message: (
+              <>
+                <em>Oops! </em>Session Expired.
+              </>
+            )
+          });
+          throw new Error("Session Expired");
+        } else {
+          toaster.show({
+            intent: Intent.DANGER,
+            message: (
+              <>
+                <em>Oops! </em>Failed to save sense offsets.
+              </>
+            )
+          });
+          throw new Error("Unknown Error");
+        }
+      })
+      .then(resData => {
         this.setState({
           originalSenses: JSON.parse(JSON.stringify(this.state.selectedSenses)),
-          saveStatus: "SAVED"
+          saveStatus: "SAVED",
+          participantId: resData["participant_id"]
         });
         this.props.changeTagStatus(this.props.utteranceIndex);
-      } else if (response.status === 302) {
-        toaster.show({
-          icon: "warning-sign",
-          intent: Intent.WARNING,
-          message: <>Sense offsets already saved.</>
-        });
-      } else {
-        toaster.show({
-          intent: Intent.DANGER,
-          message: (
-            <>
-              <em>Oops! </em>Failed to save sense offsets.
-            </>
-          )
-        });
-      }
-    });
-
-    console.log(
-      "Your favorite flavor is: " + JSON.stringify(this.state.selectedSenses)
-    );
+      })
+      .catch(error => console.log(error));
   }
 
   handleReset() {
@@ -186,97 +254,100 @@ class SenseDisplay extends Component {
     const isSenses = this.state.senses && this.state.senses.length > 0;
 
     if (isSenses) {
-      return (this.props.isLoggedIn &&
-        <div id="senses">
-          <Text className="currentWord">
-            {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}
-          </Text>
-          <Text>
-            (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
-            {this.props.utteranceIndex - CONTEXT_LENGTH})
-          </Text>
-          <form onSubmit={this.handleFormSubmit}>
-            <div className="bp3-card bp3-elevation-1">
-              <HTMLTable
-                id="senses-table"
-                className="bp3-html-table bp3-interactive bp3-html-table-striped"
-              >
-                <thead>
-                  <tr>
-                    <th>Senses</th>
-                    <th>Examples</th>
-                    <th># of Tags</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {this.state.senses.map(sense_example => [
+      return (
+        ((!this.props.isPublic && this.props.isLoggedIn) ||
+          this.props.isPublic) && (
+          <div id="senses">
+            <Text className="currentWord">
+              {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}
+            </Text>
+            <Text>
+              (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
+              {this.props.utteranceIndex - CONTEXT_LENGTH})
+            </Text>
+            <form onSubmit={this.handleFormSubmit}>
+              <div className="bp3-card bp3-elevation-1">
+                <HTMLTable
+                  id="senses-table"
+                  className="bp3-html-table bp3-interactive bp3-html-table-striped"
+                >
+                  <thead>
                     <tr>
-                      <td>
-                        <Checkbox
-                          style={{ color: "blue" }}
-                          type="checkbox"
-                          value={sense_example.offset}
-                          onChange={this.handleSensesChange}
-                          checked={this.loadTags(sense_example.offset)}
-                          label={sense_example.sense}
-                        />
-                      </td>
-                      <td>
-                        <CarouselProvider
-                          naturalSlideWidth={12}
-                          naturalSlideHeight={1}
-                          totalSlides={sense_example.examples.length}
-                          currentSlide={0}
-                          lockOnWindowScroll={false}
-                          dragEnabled={false}
-                          touchEnabled={false}
-                        >
-                          <Slider className="example-slider">
-                            {sense_example.examples.map(example => (
-                              <Slide>
-                                <Text>{example}</Text>
-                              </Slide>
-                            ))}
-                          </Slider>
-                          <ButtonFirst>{"<<"}</ButtonFirst>
-                          <ButtonBack>{"<"}</ButtonBack>
-                          <ButtonNext>{">"}</ButtonNext>
-                          <ButtonLast>{">>"}</ButtonLast>
-                        </CarouselProvider>
-                      </td>
-                      <td>
-                          {sense_example.number_of_tags}
-                      </td>
+                      <th>Senses</th>
+                      <th>Examples</th>
+                      {!this.props.isPublic && <th># of Tags</th>}
                     </tr>
-                  ])}
-                </tbody>
-              </HTMLTable>
-            </div>
-            <div id="control-buttons">
-              <Button
-                type="submit"
-                intent={
-                  this.state.saveStatus === "SAVED" ? "success" : "primary"
-                }
-                text={this.state.saveStatus}
-                disabled={
-                  this.state.saveDisabled ||
-                  this.state.saveStatus === "SAVED" ||
-                  this.state.selectedSenses.length === 0
-                }
-              />
-              <Button
-                intent={"warning"}
-                text={"RESET"}
-                onClick={this.handleReset}
-                disabled={arraysEqual(
-                  this.state.selectedSenses,
-                  this.state.originalSenses
-                )}
-              />
-            </div>
-          </form>
-        </div>
+                  </thead>
+                  <tbody>
+                    {this.state.senses.map(sense_example => [
+                      <tr>
+                        <td>
+                          <Checkbox
+                            style={{ color: "blue" }}
+                            type="checkbox"
+                            value={sense_example.offset}
+                            onChange={this.handleSensesChange}
+                            checked={this.loadTags(sense_example.offset)}
+                            label={sense_example.sense}
+                          />
+                        </td>
+                        <td>
+                          <CarouselProvider
+                            naturalSlideWidth={12}
+                            naturalSlideHeight={1}
+                            totalSlides={sense_example.examples.length}
+                            currentSlide={0}
+                            lockOnWindowScroll={false}
+                            dragEnabled={false}
+                            touchEnabled={false}
+                          >
+                            <Slider className="example-slider">
+                              {sense_example.examples.map(example => (
+                                <Slide>
+                                  <Text>{example}</Text>
+                                </Slide>
+                              ))}
+                            </Slider>
+                            <ButtonFirst>{"<<"}</ButtonFirst>
+                            <ButtonBack>{"<"}</ButtonBack>
+                            <ButtonNext>{">"}</ButtonNext>
+                            <ButtonLast>{">>"}</ButtonLast>
+                          </CarouselProvider>
+                        </td>
+                        {!this.props.isPublic && (
+                          <td>{sense_example.number_of_tags}</td>
+                        )}
+                      </tr>
+                    ])}
+                  </tbody>
+                </HTMLTable>
+              </div>
+              <div id="control-buttons">
+                <Button
+                  type="submit"
+                  intent={
+                    this.state.saveStatus === "SAVED" ? "success" : "primary"
+                  }
+                  text={this.state.saveStatus}
+                  disabled={
+                    this.state.saveDisabled ||
+                    this.state.saveStatus === "SAVED" ||
+                    this.state.selectedSenses.length === 0
+                  }
+                />
+                <Button
+                  intent={"warning"}
+                  text={"RESET"}
+                  onClick={this.handleReset}
+                  disabled={arraysEqual(
+                    this.state.selectedSenses,
+                    this.state.originalSenses
+                  )}
+                />
+              </div>
+            </form>
+          </div>
+        )
       );
     }
     return null;
