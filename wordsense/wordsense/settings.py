@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 import datetime
 import os
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'h6_d1buz#r)v0dje^6w_dus9-wzziivjld*ja=p+os*opuvht1'
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['192.168.0.24']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -109,10 +110,6 @@ DATABASES = {
         'USER': os.environ.get('CHILDESDB_USER'),
         'PASSWORD': os.environ.get('CHILDESDB_PW'),
         'HOST': os.environ.get('CHILDESDB_HOST')
-        # 'NAME': 'childesdb',  # os.environ.get('CHILDESDB_NAME'),
-        # 'USER': 'root',  # os.environ.get('CHILDESDB_USER'),
-        # 'PASSWORD': '',  # os.environ.get('CHILDESDB_PW'),
-        # # 'HOST': os.environ.get('CHILDESDB_HOST')
     }
 }
 
@@ -154,4 +151,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+
+django_heroku.settings(locals())
