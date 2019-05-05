@@ -21,6 +21,7 @@ import {
 import classNames from "classnames";
 import Fingerprint2 from "fingerprintjs2";
 import { BASE_URL } from "./Constants";
+import { Cookies } from "js-cookie";
 
 const OVERLAY_CLASS = "docs-overlay-example-transition";
 
@@ -79,7 +80,8 @@ class Staff extends Component {
     if (this.state.isLoggedIn) {
       fetch(`${BASE_URL}/api/current_user/`, {
         headers: {
-          Authorization: `JWT ${localStorage.getItem("word_sense_token")}`
+          Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
+            'X-CSRFToken': Cookies.get('csrftoken')
         }
       })
         .then(res => {
@@ -212,7 +214,8 @@ class Staff extends Component {
     fetch(`${BASE_URL}/token-auth/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+          'X-CSRFToken': Cookies.get('csrftoken')
       },
       body: JSON.stringify(data)
     })
@@ -249,7 +252,8 @@ class Staff extends Component {
     fetch(`${BASE_URL}/api/signup/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+          'X-CSRFToken': Cookies.get('csrftoken')
       },
       body: JSON.stringify({
         userdata: data,
@@ -277,7 +281,7 @@ class Staff extends Component {
           intent: Intent.DANGER,
           message: (
             <>
-              <em> {error.toString()} </em>
+              <em> {error.detail} </em>
             </>
           )
         });

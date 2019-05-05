@@ -18,6 +18,7 @@ import {
 } from "pure-react-carousel";
 import { CONTEXT_LENGTH, BASE_URL, PUBLIC_URL } from "./Constants";
 import Fingerprint2 from "fingerprintjs2";
+import {Cookies} from "js-cookie";
 
 class SenseDisplay extends Component {
   constructor(props) {
@@ -69,7 +70,8 @@ class SenseDisplay extends Component {
           headers: {
             Authorization: this.props.isPublic
               ? ""
-              : `JWT ${localStorage.getItem("word_sense_token")}`
+              : `JWT ${localStorage.getItem("word_sense_token")}`,
+              'X-CSRFToken': Cookies.get('csrftoken')
           }
         }
       );
@@ -81,7 +83,8 @@ class SenseDisplay extends Component {
           headers: {
             Authorization: this.props.isPublic
               ? ""
-              : `JWT ${localStorage.getItem("word_sense_token")}`
+              : `JWT ${localStorage.getItem("word_sense_token")}`,
+              'X-CSRFToken': Cookies.get('csrftoken')
           }
         }
       );
@@ -178,7 +181,8 @@ class SenseDisplay extends Component {
         "Content-Type": "application/json",
         Authorization: this.props.isPublic
           ? ""
-          : `JWT ${localStorage.getItem("word_sense_token")}`
+          : `JWT ${localStorage.getItem("word_sense_token")}`,
+          'X-CSRFToken': Cookies.get('csrftoken')
       },
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,

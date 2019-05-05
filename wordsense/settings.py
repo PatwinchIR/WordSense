@@ -70,6 +70,8 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
 )
 
+CSRF_COOKIE_NAME = "csrftoken"
+
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.utils.jwt_response_handler',
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=3),

@@ -11,6 +11,7 @@ import {
   BASE_URL,
   PUBLIC_URL
 } from "./Constants";
+import {Cookies} from "js-cookie";
 
 class UtteranceDisplay extends Component {
   constructor(props) {
@@ -111,7 +112,8 @@ class UtteranceDisplay extends Component {
           headers: {
             Authorization: this.props.isPublic
               ? ""
-              : `JWT ${localStorage.getItem("word_sense_token")}`
+              : `JWT ${localStorage.getItem("word_sense_token")}`,
+              'X-CSRFToken': Cookies.get('csrftoken')
           }
         }
       )
