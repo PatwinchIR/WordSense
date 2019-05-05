@@ -35,5 +35,6 @@
     "@babel/core": "^7.4.0",
     "@babel/preset-env": "^7.4.2",
     "babel-loader": "^8.0.5"
-  }
+  },
+  "proxy": "http://localhost:8000"
 }

@@ -98,6 +98,7 @@ WSGI_APPLICATION = 'wordsense.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
+    'default': django_heroku.dj_database_url.config(),
     'childesdb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('CHILDESDB_NAME'),
@@ -106,8 +107,6 @@ DATABASES = {
         'HOST': os.environ.get('CHILDESDB_HOST')
     }
 }
-
-DATABASES['default'] = django_heroku.dj_database_url.config()
 
 DATABASE_ROUTERS = ['ws_web.db_routers.DatabaseRouter']
 
