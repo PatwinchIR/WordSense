@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "heroku-prebuild": "NODE_ENV=production cd frontend/ && yarn install && yarn build && cd .."
+    "heroku-prebuild": "NODE_ENV=production cd wordsense/ws_ui/ && yarn install && yarn build && cd .."
   },
   "cacheDirectories": [
     "ws_ui/node_modules"
