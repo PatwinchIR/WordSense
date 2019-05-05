@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags, Participant
+from wordsense.ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags, Participant
 from django.contrib.auth.models import User
 
 

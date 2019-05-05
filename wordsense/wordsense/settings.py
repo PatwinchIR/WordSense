@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'ws_web',
+    'wordsense.ws_web',
     'rest_framework',
     'corsheaders'
 ]

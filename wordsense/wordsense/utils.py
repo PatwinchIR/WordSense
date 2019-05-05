@@ -1,4 +1,4 @@
-from ws_web.serializers import UserSerializer
+from wordsense.ws_web.serializers import UserSerializer
 
 
 def jwt_response_handler(token, user=None, request=None):

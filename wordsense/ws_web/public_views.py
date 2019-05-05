@@ -3,8 +3,8 @@ from itertools import zip_longest
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 
-from ws_web.models import DerivedTokens, Tags
-from ws_web.serializers import DerivedTokensSerializer, SenseSerializer, TagsSerializer, \
+from wordsense.ws_web.models import DerivedTokens, Tags
+from wordsense.ws_web.serializers import DerivedTokensSerializer, SenseSerializer, TagsSerializer, \
     ParticipantSerializer
 
 from nltk.corpus import wordnet as wn
