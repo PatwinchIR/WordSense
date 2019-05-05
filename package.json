@@ -7,12 +7,22 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "heroku-prebuild": "NODE_ENV=production cd wordsense/ws_ui/ && yarn install && yarn build && cd .."
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "postinstall": "npm run build"
   },
   "cacheDirectories": [
     "ws_ui/node_modules"
   ],
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "2.1.8"
+  },
   "engines": {
-    "node": "10.13.0"
+    "node": "10.13.0",
+    "npm": "6.9.0"
   }
 }
