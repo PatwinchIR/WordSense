@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Icon, NumericInput, Button } from "@blueprintjs/core";
 import Select from "react-select";
 import { BASE_URL } from "./Constants";
-import {Cookies} from "js-cookie";
+import {cookie} from "react-cookie";
 
 class ContentSelection extends Component {
   constructor(props) {
@@ -35,7 +35,7 @@ class ContentSelection extends Component {
       const res = await fetch(`${BASE_URL}/api/get_collection/`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-            'X-CSRFToken': Cookies.get('csrftoken')
+            'X-CSRFToken': cookie.load('csrftoken')
         }
       });
       const collections = await res.json();
@@ -71,7 +71,7 @@ class ContentSelection extends Component {
         {
           headers: {
             Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': Cookies.get('csrftoken')
+              'X-CSRFToken': cookie.load('csrftoken')
           }
         }
       );
@@ -91,7 +91,7 @@ class ContentSelection extends Component {
         {
           headers: {
             Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': Cookies.get('csrftoken')
+              'X-CSRFToken': cookie.load('csrftoken')
           }
         }
       );
