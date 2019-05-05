@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath=./wordsense wordsense.wsgi:application --log-file -
+web: gunicorn wordsense.wsgi --log-file -
