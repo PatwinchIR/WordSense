@@ -13,6 +13,6 @@
     "ws_ui/node_modules"
   ],
   "engines": {
-    "node": "8.9.4"
+    "node": "10.13.0"
   }
 }
