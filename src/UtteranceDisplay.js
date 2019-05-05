@@ -251,7 +251,6 @@ class UtteranceDisplay extends Component {
             !this.state.loading &&
             !this.state.confirmed &&
             !this.props.isPublic && [
-              ((
                 <Button
                   className="button-work-on-this"
                   onClick={this.handleConfirmation}
@@ -259,9 +258,7 @@ class UtteranceDisplay extends Component {
                 >
                   Okay, Work on this!
                 </Button>
-              ),
-              (
-                <div className="preview-box bp3-card bp3-elevation-1">
+              , <div className="preview-box bp3-card bp3-elevation-1">
                   {this.state.utterances.map(utterance => (
                     <div>
                       {utterance.speaker_role}
@@ -272,7 +269,6 @@ class UtteranceDisplay extends Component {
                     </div>
                   ))}
                 </div>
-              ))
             ]}
           {(this.props.isPublic
             ? !this.state.loading && this.state.confirmed
