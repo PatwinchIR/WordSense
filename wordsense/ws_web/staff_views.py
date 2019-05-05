@@ -8,8 +8,8 @@ from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from wordsense.ws_web.models import Collection, Corpus, Transcript, Utterance, DerivedTokens, Tags
-from wordsense.ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
+from ws_web.models import Collection, Corpus, Transcript, Utterance, DerivedTokens, Tags
+from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, UtteranceSerializer, \
     SenseSerializer, DerivedTokensSerializer, TagsSerializer, UserSerializerWithToken, UserSerializer, \
     ParticipantSerializer
 from nltk.corpus import wordnet as wn

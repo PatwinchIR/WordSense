@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'wordsense.ws_web',
+    'ws_web',
     'rest_framework',
     'corsheaders'
 ]
@@ -69,11 +69,11 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 JWT_AUTH = {
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.wordsense.utils.jwt_response_handler',
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'wordsense.utils.jwt_response_handler',
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=3),
 }
 
-ROOT_URLCONF = 'wordsense.wordsense.urls'
+ROOT_URLCONF = 'wordsense.urls'
 
 TEMPLATES = [
     {
@@ -91,7 +91,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'wordsense.wordsense.wsgi.application'
+WSGI_APPLICATION = 'wordsense.wsgi.application'
 
 
 # Database
@@ -113,7 +113,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ['wordsense.ws_web.db_routers.DatabaseRouter']
+DATABASE_ROUTERS = ['ws_web.db_routers.DatabaseRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

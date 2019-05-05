@@ -3,7 +3,7 @@ import time
 
 import django
 
-from wordsense.ws_web.preprocessing_scripts.utils.queryset_foreach import queryset_foreach
+from ws_web.preprocessing_scripts.utils.queryset_foreach import queryset_foreach
 
 django.setup()
 

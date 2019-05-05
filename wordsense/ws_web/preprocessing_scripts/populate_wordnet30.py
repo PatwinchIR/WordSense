@@ -2,7 +2,7 @@ import django
 django.setup()
 
 # WordNet30 Populating
-from wordsense.ws_web.models import WordNet30
+from ws_web.models import WordNet30
 
 from nltk.corpus import wordnet as wn
 
