@@ -11,5 +11,8 @@
   },
   "cacheDirectories": [
     "ws_ui/node_modules"
-  ]
+  ],
+  "engines": {
+    "node": "8.9.4"
+  }
 }
