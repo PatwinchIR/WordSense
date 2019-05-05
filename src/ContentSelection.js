@@ -48,6 +48,8 @@ class ContentSelection extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log("this: " + this.props.isLoggedIn);
+    console.log("next: " + nextProps.isLoggedIn);
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (nextProps.isLoggedIn) {
         this.loadCollection();
