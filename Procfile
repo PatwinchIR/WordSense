@@ -1,1 +1,1 @@
-web: gunicorn -b 0.0.0.0:8000 wordsense.wsgi --log-file -
+web: gunicorn wordsense.wsgi --log-file -
