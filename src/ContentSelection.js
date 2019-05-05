@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Icon, NumericInput, Button } from "@blueprintjs/core";
 import Select from "react-select";
 import { BASE_URL } from "./Constants";
-import {cookie} from "react-cookie";
+import cookie from "react-cookie";
 
 class ContentSelection extends Component {
   constructor(props) {
@@ -48,8 +48,6 @@ class ContentSelection extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log("this: " + this.props.isLoggedIn);
-    console.log("next: " + nextProps.isLoggedIn);
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (nextProps.isLoggedIn) {
         this.loadCollection();

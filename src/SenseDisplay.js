@@ -18,7 +18,7 @@ import {
 } from "pure-react-carousel";
 import { CONTEXT_LENGTH, BASE_URL, PUBLIC_URL } from "./Constants";
 import Fingerprint2 from "fingerprintjs2";
-import {cookie} from "react-cookie";
+import cookie from "react-cookie";
 
 class SenseDisplay extends Component {
   constructor(props) {
