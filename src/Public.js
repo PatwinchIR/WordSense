@@ -37,26 +37,32 @@ class Public extends Component {
 
   render() {
     return [
-      <div>Public</div>,
-      <Link to="/">Home</Link>,
-      <div id="upper-container">
-        <UtteranceDisplay
-          isPublic={true}
-          handleGlossClick={this.handleGlossClick}
-          activeWord={this.state.activeWord}
-          utteranceIndexForTagStatusChange={
-            this.state.utteranceIndexForTagStatusChange
-          }
-          tokenIndex={this.state.tokenIndex}
-        />
+      <div id="banner">
+        <span>
+          <b>WordSense</b>
+        </span>
+        <Link to="/">Home</Link>
       </div>,
-      <div id="lower-container">
-        <SenseDisplay
-          isPublic={true}
-          idGlossPos={this.state.idGlossPos}
-          changeTagStatus={this.changeTagStatus}
-          utteranceIndex={this.state.utteranceIndex}
-        />
+      <div id="container">
+        <div id="upper-container">
+          <UtteranceDisplay
+            isPublic={true}
+            handleGlossClick={this.handleGlossClick}
+            activeWord={this.state.activeWord}
+            utteranceIndexForTagStatusChange={
+              this.state.utteranceIndexForTagStatusChange
+            }
+            tokenIndex={this.state.tokenIndex}
+          />
+        </div>
+        <div id="lower-container">
+          <SenseDisplay
+            isPublic={true}
+            idGlossPos={this.state.idGlossPos}
+            changeTagStatus={this.changeTagStatus}
+            utteranceIndex={this.state.utteranceIndex}
+          />
+        </div>
       </div>
     ];
   }

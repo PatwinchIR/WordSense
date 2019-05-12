@@ -12,10 +12,9 @@ class Welcome extends Component {
 
   render() {
     return [
-      <div id="banner">
+      <div id="welcomebanner">
         <H1>WordSense</H1>
       </div>,
-      <H1>Welcome</H1>,
       <ul>
         <li>
           <Link to="/">Home</Link>

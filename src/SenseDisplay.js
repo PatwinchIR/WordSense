@@ -71,7 +71,7 @@ class SenseDisplay extends Component {
             Authorization: this.props.isPublic
               ? ""
               : `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': cookie.load('csrftoken')
+            "X-CSRFToken": cookie.load("csrftoken")
           }
         }
       );
@@ -84,7 +84,7 @@ class SenseDisplay extends Component {
             Authorization: this.props.isPublic
               ? ""
               : `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': cookie.load('csrftoken')
+            "X-CSRFToken": cookie.load("csrftoken")
           }
         }
       );
@@ -182,7 +182,7 @@ class SenseDisplay extends Component {
         Authorization: this.props.isPublic
           ? ""
           : `JWT ${localStorage.getItem("word_sense_token")}`,
-          'X-CSRFToken': cookie.load('csrftoken')
+        "X-CSRFToken": cookie.load("csrftoken")
       },
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,
@@ -262,13 +262,15 @@ class SenseDisplay extends Component {
         ((!this.props.isPublic && this.props.isLoggedIn) ||
           this.props.isPublic) && (
           <div id="senses">
-            <Text className="currentWord">
-              {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}
-            </Text>
-            <Text>
-              (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
-              {this.props.utteranceIndex - CONTEXT_LENGTH})
-            </Text>
+            <div class="header">
+              <Text className="currentWord">
+                {this.props.idGlossPos.gloss}, {this.props.idGlossPos.pos}{" "}
+              </Text>
+              <Text>
+                (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
+                {this.props.utteranceIndex - CONTEXT_LENGTH})
+              </Text>
+            </div>
             <form onSubmit={this.handleFormSubmit}>
               <div className="bp3-card bp3-elevation-1">
                 <HTMLTable
@@ -297,7 +299,7 @@ class SenseDisplay extends Component {
                         </td>
                         <td>
                           <CarouselProvider
-                            naturalSlideWidth={12}
+                            naturalSlideWidth={6}
                             naturalSlideHeight={1}
                             totalSlides={sense_example.examples.length}
                             currentSlide={0}

@@ -176,7 +176,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             serializer = TagsSerializer(data=data_to_save, many=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(status=status.HTTP_202_ACCEPTED)
+                return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
             else:
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, Button, InputGroup } from "@blueprintjs/core";
+import { Text, Button, InputGroup, Icon } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 
 class SignupForm extends React.Component {
@@ -20,12 +20,11 @@ class SignupForm extends React.Component {
   };
 
   render() {
-    return [
+    return (
       <form
         onSubmit={e => this.props.handleSignup(e, this.state)}
-        className="signup-form"
+        className="auth-form"
       >
-        <h4>Sign Up</h4>
         <label htmlFor="username">Username</label>
         <InputGroup
           type="text"
@@ -47,19 +46,25 @@ class SignupForm extends React.Component {
           value={this.state.confirmedPassword}
           onChange={this.handleChange}
         />
-        <Button
-          intent={"primary"}
-          text={"Sign Up"}
-          type="submit"
-          disabled={
-            this.state.password === "" ||
-            this.state.password !== this.state.confirmedPassword
-          }
-        />
-        <Link to="/">Home</Link>
-      </form>,
-      this.state.password !== this.state.confirmedPassword && <Text>error</Text>
-    ];
+        {this.state.password !== this.state.confirmedPassword && (
+          <Text className="passwordconfirm">Password doesn't match.</Text>
+        )}
+        <div className="actions">
+          <Button
+            intent={"primary"}
+            text={"Sign Up"}
+            type="submit"
+            disabled={
+              this.state.password === "" ||
+              this.state.password !== this.state.confirmedPassword
+            }
+          />
+          <Link to="/">
+            <Icon icon="home" />
+          </Link>
+        </div>
+      </form>
+    );
   }
 }
 

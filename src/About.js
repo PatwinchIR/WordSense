@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import { Link } from "react-router-dom";
+import {H1, Icon} from "@blueprintjs/core";
 
 class About extends Component {
   constructor(props) {
@@ -10,7 +11,15 @@ class About extends Component {
   }
 
   render() {
-    return [<div>About WordSense</div>, <Link to="/">Home</Link>];
+    return [
+        <div id="banner">
+        <span>
+          <b>WordSense</b>
+        </span>
+          <Link to="/"><Icon icon="home" />  Home</Link>
+        </div>,
+        <H1> About</H1>
+    ]
   }
 }
 

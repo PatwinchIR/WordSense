@@ -35,7 +35,7 @@ class ContentSelection extends Component {
       const res = await fetch(`${BASE_URL}/api/get_collection/`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-            'X-CSRFToken': cookie.load('csrftoken')
+          "X-CSRFToken": cookie.load("csrftoken")
         }
       });
       const collections = await res.json();
@@ -71,7 +71,7 @@ class ContentSelection extends Component {
         {
           headers: {
             Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': cookie.load('csrftoken')
+            "X-CSRFToken": cookie.load("csrftoken")
           }
         }
       );
@@ -91,7 +91,7 @@ class ContentSelection extends Component {
         {
           headers: {
             Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': cookie.load('csrftoken')
+            "X-CSRFToken": cookie.load("csrftoken")
           }
         }
       );
@@ -138,7 +138,7 @@ class ContentSelection extends Component {
             <Select
               value={this.state.selectedCollectionID}
               onChange={this.handleCollectionChange}
-              placeholder="Select Collection..."
+              placeholder="Select Collection"
               isSearchable={true}
               options={this.state.collections.map(item => {
                 return { value: item.id, label: item.name };
@@ -161,7 +161,7 @@ class ContentSelection extends Component {
             <Select
               value={this.props.selectedTranscriptID}
               onChange={this.props.handleTranscriptChange}
-              placeholder="Select Transcript..."
+              placeholder="Select Transcript"
               options={this.state.transcripts.map(item => {
                 return {
                   value: item.id,
@@ -176,13 +176,13 @@ class ContentSelection extends Component {
           <NumericInput
             name="inputTranscriptId"
             buttonPosition="none"
-            placeholder="Enter Transcript ID..."
+            placeholder="Enter Transcript ID"
             value={this.props.inputTranscriptId}
           />
           <NumericInput
             name="inputUtteranceIndex"
             buttonPosition="none"
-            placeholder="Enter Utterance Index..."
+            placeholder="Enter Utterance Index"
             value={this.props.inputUtteranceIndex}
             min={0}
           />

@@ -11,7 +11,7 @@ import {
   BASE_URL,
   PUBLIC_URL
 } from "./Constants";
-import cookie  from "react-cookie";
+import cookie from "react-cookie";
 
 class UtteranceDisplay extends Component {
   constructor(props) {
@@ -113,7 +113,7 @@ class UtteranceDisplay extends Component {
             Authorization: this.props.isPublic
               ? ""
               : `JWT ${localStorage.getItem("word_sense_token")}`,
-              'X-CSRFToken': cookie.load('csrftoken')
+            "X-CSRFToken": cookie.load("csrftoken")
           }
         }
       )
@@ -251,31 +251,31 @@ class UtteranceDisplay extends Component {
             !this.state.loading &&
             !this.state.confirmed &&
             !this.props.isPublic && [
-                <Button
-                  className="button-work-on-this"
-                  onClick={this.handleConfirmation}
-                  disabled={this.state.utterances.length <= 0}
-                >
-                  Okay, Work on this!
-                </Button>
-              , <div className="preview-box bp3-card bp3-elevation-1">
-                  {this.state.utterances.map(utterance => (
-                    <div>
-                      {utterance.speaker_role}
-                      {utterance.speaker_role === "" ? "" : ": "}
-                      {utterance.id_gloss_pos.map(idGlossPos => (
-                        <span>{idGlossPos.gloss} </span>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+              <Button
+                className="button-work-on-this"
+                onClick={this.handleConfirmation}
+                disabled={this.state.utterances.length <= 0}
+              >
+                Okay, Work on this!
+              </Button>,
+              <div className="preview-box bp3-card bp3-elevation-1">
+                {this.state.utterances.map(utterance => (
+                  <div>
+                    {utterance.speaker_role}
+                    {utterance.speaker_role === "" ? "" : ": "}
+                    {utterance.id_gloss_pos.map(idGlossPos => (
+                      <span>{idGlossPos.gloss} </span>
+                    ))}
+                  </div>
+                ))}
+              </div>
             ]}
           {(this.props.isPublic
             ? !this.state.loading && this.state.confirmed
             : this.state.confirmed) && (
             <CarouselProvider
-              naturalSlideWidth={50}
-              naturalSlideHeight={1.5}
+              naturalSlideWidth={25}
+              naturalSlideHeight={1.3}
               totalSlides={this.state.utterances.length}
               orientation="vertical"
               visibleSlides={UTTERANCE_TO_DISPLAY}

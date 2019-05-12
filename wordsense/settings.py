@@ -21,7 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY'] if os.environ.get(
+    'WORDSENSE_ENV') == 'prod' else "a key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -102,7 +103,12 @@ WSGI_APPLICATION = 'wordsense.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': django_heroku.dj_database_url.config(),
+    'default': django_heroku.dj_database_url.config() if os.environ.get("WORDSENSE_ENV") == 'prod' else {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'wordsense',
+        'USER': 'postgres',
+        'PASSWORD': ''
+    },
     'childesdb': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('CHILDESDB_NAME'),

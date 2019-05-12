@@ -81,7 +81,7 @@ class Staff extends Component {
       fetch(`${BASE_URL}/api/current_user/`, {
         headers: {
           Authorization: `JWT ${localStorage.getItem("word_sense_token")}`,
-            'X-CSRFToken': cookie.load('csrftoken')
+          "X-CSRFToken": cookie.load("csrftoken")
         }
       })
         .then(res => {
@@ -215,7 +215,7 @@ class Staff extends Component {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-          'X-CSRFToken': cookie.load('csrftoken')
+        "X-CSRFToken": cookie.load("csrftoken")
       },
       body: JSON.stringify(data)
     })
@@ -253,7 +253,7 @@ class Staff extends Component {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-          'X-CSRFToken': cookie.load('csrftoken')
+        "X-CSRFToken": cookie.load("csrftoken")
       },
       body: JSON.stringify({
         userdata: data,
@@ -301,14 +301,19 @@ class Staff extends Component {
     const classes = classNames(
       Classes.CARD,
       Classes.ELEVATION_4,
-      OVERLAY_CLASS
+      OVERLAY_CLASS,
+      "auth-portal-card"
     );
 
     return [
       <div id="banner">
-        <H1>WordSense</H1>
-        <H4>Welcome, {this.state.username}</H4>
-        <div onClick={this.handleLogout}>Log Out</div>
+        <span>
+          <b>WordSense</b>
+        </span>
+        <div class="user-profile">
+          <span>Welcome, {this.state.username}</span>
+          <a onClick={this.handleLogout}>Log Out</a>
+        </div>
       </div>,
       <Overlay
         isOpen={!this.state.isLoggedIn}
@@ -332,43 +337,45 @@ class Staff extends Component {
           </Tabs>
         </div>
       </Overlay>,
-      <div id="upper-container">
-        <ContentSelection
-          isLoggedIn={this.state.isLoggedIn}
-          handleTranscriptChange={this.handleTranscriptChange}
-          handleTranscriptIdInput={this.handleTranscriptIdInput}
-          selectedTranscriptID={this.state.selectedTranscriptID}
-          inputTranscriptId={
-            this.state.selectedTranscriptID !== "-1"
-              ? this.state.selectedTranscriptID.value
-              : ""
-          }
-          inputUtteranceIndex={this.state.inputUtteranceIndex}
-        />
-        <UtteranceDisplay
-          isPublic={false}
-          isLoggedIn={this.state.isLoggedIn}
-          participantId={this.state.participantId}
-          selectedTranscriptID={this.state.selectedTranscriptID.value}
-          inputUtteranceIndex={this.state.inputUtteranceIndex}
-          handleGlossClick={this.handleGlossClick}
-          activeWord={this.state.activeWord}
-          utteranceIndexForTagStatusChange={
-            this.state.utteranceIndexForTagStatusChange
-          }
-          tokenIndex={this.state.tokenIndex}
-        />
-      </div>,
-      <div id="lower-container">
-        <SenseDisplay
-          isPublic={false}
-          isLoggedIn={this.state.isLoggedIn}
-          participantId={this.state.participantId}
-          idGlossPos={this.state.idGlossPos}
-          changeTagStatus={this.changeTagStatus}
-          utteranceIndex={this.state.utteranceIndex}
-          transcriptId={this.state.selectedTranscriptID.value}
-        />
+      <ContentSelection
+        isLoggedIn={this.state.isLoggedIn}
+        handleTranscriptChange={this.handleTranscriptChange}
+        handleTranscriptIdInput={this.handleTranscriptIdInput}
+        selectedTranscriptID={this.state.selectedTranscriptID}
+        inputTranscriptId={
+          this.state.selectedTranscriptID !== "-1"
+            ? this.state.selectedTranscriptID.value
+            : ""
+        }
+        inputUtteranceIndex={this.state.inputUtteranceIndex}
+      />,
+      <div id="container">
+        <div id="upper-container">
+          <UtteranceDisplay
+            isPublic={false}
+            isLoggedIn={this.state.isLoggedIn}
+            participantId={this.state.participantId}
+            selectedTranscriptID={this.state.selectedTranscriptID.value}
+            inputUtteranceIndex={this.state.inputUtteranceIndex}
+            handleGlossClick={this.handleGlossClick}
+            activeWord={this.state.activeWord}
+            utteranceIndexForTagStatusChange={
+              this.state.utteranceIndexForTagStatusChange
+            }
+            tokenIndex={this.state.tokenIndex}
+          />
+        </div>
+        <div id="lower-container">
+          <SenseDisplay
+            isPublic={false}
+            isLoggedIn={this.state.isLoggedIn}
+            participantId={this.state.participantId}
+            idGlossPos={this.state.idGlossPos}
+            changeTagStatus={this.changeTagStatus}
+            utteranceIndex={this.state.utteranceIndex}
+            transcriptId={this.state.selectedTranscriptID.value}
+          />
+        </div>
       </div>
     ];
   }

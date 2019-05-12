@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, InputGroup } from "@blueprintjs/core";
+import { Button, Icon, InputGroup } from "@blueprintjs/core";
 import { Link } from "react-router-dom";
 
 class LoginForm extends React.Component {
@@ -22,7 +22,7 @@ class LoginForm extends React.Component {
     return (
       <form
         onSubmit={e => this.props.handleLogin(e, this.state)}
-        className="login-form"
+        className="auth-form"
       >
         <label htmlFor="username">Username</label>
         <InputGroup
@@ -38,13 +38,17 @@ class LoginForm extends React.Component {
           value={this.state.password}
           onChange={this.handleChange}
         />
-        <Button
-          intent={"success"}
-          text={"Log In"}
-          type="submit"
-          disabled={this.state.password === "" || this.state.username === ""}
-        />
-        <Link to="/">Home</Link>
+        <div className="actions">
+          <Button
+            intent={"success"}
+            text={"Log In"}
+            type="submit"
+            disabled={this.state.password === "" || this.state.username === ""}
+          />
+          <Link to="/">
+            <Icon icon="home" />
+          </Link>
+        </div>
       </form>
     );
   }
