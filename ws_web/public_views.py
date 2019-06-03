@@ -83,6 +83,21 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 new_participant = participant_serializer.save()
                 data['participant'] = new_participant.id
 
+        if data['fixed_pos'] in ('n', 'v', 'adj', 'adv', 'other'):
+            serializer = TagsSerializer(data={
+                'gloss_with_replacement': data['gloss_with_replacement'],
+                'token': data['token'],
+                'sense_offset': None,
+                'fixed_pos': data['fixed_pos'],
+                'participant': data['participant']
+            })
+            if serializer.is_valid():
+                print("this shit")
+                serializer.save()
+                return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
+            else:
+                return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         existing_sense_offsets = set(Tags.objects.filter(
             gloss_with_replacement=data['gloss_with_replacement'],
             token_id=data['token'],

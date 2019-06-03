@@ -4,6 +4,26 @@ from django.db import models
 # Create your models here.
 
 
+class WorkUnit(models.Model):
+    WORK_UNIT_STATUS = (
+        ("idle", "IDLE"),
+        ("active", "ACTIVE")
+    )
+
+    utterance_ids = models.TextField()
+    transcript_id = models.PositiveIntegerField()
+    corpus_id = models.PositiveIntegerField()
+    collection_id = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(
+        max_length=20, choices=WORK_UNIT_STATUS, default="idle")
+    times_worked = models.PositiveIntegerField(default=0)
+    last_active_time = models.DateTimeField()
+
+    class Meta:
+        db_table = 'work_unit'
+        app_label = 'ws_web'
+
+
 class WordNet30(models.Model):
     word = models.CharField(max_length=100, default='')
     definition = models.TextField()
@@ -60,7 +80,9 @@ class Tags(models.Model):
     gloss_with_replacement = models.CharField(
         max_length=255, blank=True, null=True)
     token = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
-    sense_offset = models.PositiveIntegerField()
+    sense_offset = models.PositiveIntegerField(null=True)
+    fixed_pos = models.CharField(
+        max_length=255, blank=True, null=True)
     participant = models.ForeignKey('Participant', on_delete=models.PROTECT)
 
     class Meta:
@@ -97,33 +119,6 @@ class Corpus(models.Model):
         managed = False
         db_table = 'corpus'
         app_label = 'childesdb'
-
-
-# class Participant(models.Model):
-#     code = models.CharField(max_length=255, blank=True, null=True)
-#     name = models.CharField(max_length=255, blank=True, null=True)
-#     role = models.CharField(max_length=255, blank=True, null=True)
-#     language = models.CharField(max_length=255, blank=True, null=True)
-#     group = models.CharField(max_length=255, blank=True, null=True)
-#     sex = models.CharField(max_length=255, blank=True, null=True)
-#     ses = models.CharField(max_length=255, blank=True, null=True)
-#     education = models.CharField(max_length=255, blank=True, null=True)
-#     custom = models.CharField(max_length=255, blank=True, null=True)
-#     corpus = models.ForeignKey(
-#         Corpus, models.DO_NOTHING, blank=True, null=True)
-#     max_age = models.FloatField(blank=True, null=True)
-#     min_age = models.FloatField(blank=True, null=True)
-#     target_child = models.ForeignKey(
-#         'self', models.DO_NOTHING, blank=True, null=True)
-#     collection = models.ForeignKey(
-#         Collection, models.DO_NOTHING, blank=True, null=True)
-#     collection_name = models.CharField(max_length=255, blank=True, null=True)
-#     corpus_name = models.CharField(max_length=255, blank=True, null=True)
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'participant'
-#         app_label = 'childesdb'
 
 
 class Token(models.Model):

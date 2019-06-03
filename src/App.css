@@ -189,6 +189,10 @@
   display: inline-block;
 }
 
+#lower-container #senses .header .wrongPos {
+  float: right;
+}
+
 #upper-container #utterances #control-buttons,
 #lower-container #senses #control-buttons {
   display: flex;
@@ -262,4 +266,16 @@
 .passwordconfirm {
   color: red;
   font-style: italic;
+}
+
+.wrongPosConfirm {
+  color: red;
+  margin-bottom: 5px;
+}
+
+.choiceTitle {
+  font-weight: bolder;
+  font-size: 20px;
+  color: darkgreen;
+  margin-bottom: 5px;
 }

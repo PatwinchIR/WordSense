@@ -5,7 +5,8 @@ import {
   Checkbox,
   Text,
   Button,
-  HTMLTable
+  HTMLTable,
+  Overlay
 } from "@blueprintjs/core";
 import {
   CarouselProvider,
@@ -16,9 +17,19 @@ import {
   ButtonFirst,
   ButtonLast
 } from "pure-react-carousel";
-import { CONTEXT_LENGTH, BASE_URL, PUBLIC_URL } from "./Constants";
+import {
+  CONTEXT_LENGTH,
+  BASE_URL,
+  PUBLIC_URL,
+  POS_DEFINITION
+} from "./Constants";
 import Fingerprint2 from "fingerprintjs2";
 import cookie from "react-cookie";
+import * as Classes from "@blueprintjs/core/lib/esm/common/classes";
+import WrongPosForm from "./WrongPosForm";
+import classNames from "classnames";
+
+const OVERLAY_CLASS = "docs-overlay-example-transition";
 
 class SenseDisplay extends Component {
   constructor(props) {
@@ -31,7 +42,9 @@ class SenseDisplay extends Component {
       saveDisabled: false,
       originalSenses: [],
       fingerprint: {},
-      participantId: undefined
+      participantId: undefined,
+      isWrongPosAlertOpen: false,
+      disabledSenseSelection: false
     };
 
     const thisapp = this;
@@ -55,6 +68,9 @@ class SenseDisplay extends Component {
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
     this.handleReset = this.handleReset.bind(this);
+    this.handleWrongPosOpen = this.handleWrongPosOpen.bind(this);
+    this.handleWrongPosClose = this.handleWrongPosClose.bind(this);
+    this.disableSenseSelection = this.disableSenseSelection.bind(this);
   }
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
@@ -254,7 +270,29 @@ class SenseDisplay extends Component {
     });
   }
 
+  handleWrongPosOpen() {
+    console.log(this.state.isWrongPosAlertOpen);
+    this.setState({ isWrongPosAlertOpen: true });
+  }
+
+  handleWrongPosClose() {
+    this.setState({ isWrongPosAlertOpen: false });
+  }
+
+  disableSenseSelection() {
+    this.setState({
+      isWrongPosAlertOpen: false,
+      disabledSenseSelection: true
+    });
+  }
+
   render() {
+    const classes = classNames(
+      Classes.CARD,
+      Classes.ELEVATION_4,
+      OVERLAY_CLASS,
+      "auth-portal-card"
+    );
     const isSenses = this.state.senses && this.state.senses.length > 0;
 
     if (isSenses) {
@@ -270,7 +308,39 @@ class SenseDisplay extends Component {
                 (Transcript ID: {this.props.transcriptId}, Utterance Index:{" "}
                 {this.props.utteranceIndex - CONTEXT_LENGTH})
               </Text>
+              <Button
+                className="wrongPos"
+                onClick={this.handleWrongPosOpen}
+                text={
+                  this.state.disabledSenseSelection
+                    ? "You marked this token having wrong part of speech"
+                    : "Wrong Part of Speech ?"
+                }
+                intent={
+                  this.state.disabledSenseSelection ? "danger" : "warning"
+                }
+                disabled={this.state.disabledSenseSelection}
+              />
             </div>
+            <Overlay
+              isOpen={this.state.isWrongPosAlertOpen}
+              className={Classes.OVERLAY_CONTAINER}
+            >
+              <div className={classes}>
+                <WrongPosForm
+                  isPublic={this.props.isPublic}
+                  idGlossPos={this.props.idGlossPos}
+                  handleWrongPosClose={this.handleWrongPosClose}
+                  participantId={
+                    this.props.isPublic
+                      ? this.state.participantId
+                      : this.props.participantId
+                  }
+                  disableSenseSelection={this.disableSenseSelection}
+                  fingerprint={this.state.fingerprint}
+                />
+              </div>
+            </Overlay>
             <form onSubmit={this.handleFormSubmit}>
               <div className="bp3-card bp3-elevation-1">
                 <HTMLTable
@@ -295,6 +365,7 @@ class SenseDisplay extends Component {
                             onChange={this.handleSensesChange}
                             checked={this.loadTags(sense_example.offset)}
                             label={sense_example.sense}
+                            disabled={this.state.disabledSenseSelection}
                           />
                         </td>
                         <td>
