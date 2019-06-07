@@ -168,8 +168,8 @@
   border-radius: 3px;
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.15), 0 0 0 rgba(16, 22, 26, 0),
     0 0 0 rgba(16, 22, 26, 0);
-  padding: 2px 5px;
-  margin: 0 2px;
+  padding: 0px 5px;
+  margin: 0 4px;
   background: #fcfcfc;
   transition: transform 200ms cubic-bezier(0.4, 1, 0.75, 0.9),
     box-shadow 200ms cubic-bezier(0.4, 1, 0.75, 0.9),
@@ -204,8 +204,8 @@
 
 #upper-container #utterances #content-slider .currentFocus {
   font-size: 20px;
-  transform: translateY(-6px);
   font-weight: 600;
+  background: cornsilk;
 }
 
 #upper-container
@@ -214,6 +214,10 @@
   .currentFocus
   #utterance-index-column {
   transform: translateY(3px);
+}
+
+#utterance {
+  transform: translateY(2px);
 }
 
 #upper-container #utterances #content-slider #utterance-index-column {
@@ -278,4 +282,8 @@
   font-size: 20px;
   color: darkgreen;
   margin-bottom: 5px;
+}
+
+.carousel__inner-slide {
+  overflow-y: scroll;
 }

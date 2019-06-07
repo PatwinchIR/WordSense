@@ -140,8 +140,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        print(data)
-        if data['fixed_pos'] in ('n', 'v', 'adj', 'adv', 'other'):
+        if data.get('fixed_pos', '') in ('n', 'v', 'adj', 'adv', 'other'):
             serializer = TagsSerializer(data={
                 'gloss_with_replacement': data['gloss_with_replacement'],
                 'token': data['token'],

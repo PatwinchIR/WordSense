@@ -275,7 +275,7 @@ class UtteranceDisplay extends Component {
             : this.state.confirmed) && (
             <CarouselProvider
               naturalSlideWidth={25}
-              naturalSlideHeight={1.3}
+              naturalSlideHeight={1.6}
               totalSlides={this.state.utterances.length}
               orientation="vertical"
               visibleSlides={UTTERANCE_TO_DISPLAY}
