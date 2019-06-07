@@ -92,7 +92,6 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 'participant': data['participant']
             })
             if serializer.is_valid():
-                print("this shit")
                 serializer.save()
                 return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
             else:
