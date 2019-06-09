@@ -5,6 +5,9 @@ import { Link } from "react-router-dom";
 class SignupForm extends React.Component {
   state = {
     username: "",
+    email: "",
+    first_name: "",
+    last_name: "",
     password: "",
     confirmedPassword: ""
   };
@@ -30,6 +33,27 @@ class SignupForm extends React.Component {
           type="text"
           name="username"
           value={this.state.username}
+          onChange={this.handleChange}
+        />
+          <label htmlFor="email">Email</label>
+        <InputGroup
+          type="text"
+          name="email"
+          value={this.state.email}
+          onChange={this.handleChange}
+        />
+          <label htmlFor="first_name">First Name</label>
+        <InputGroup
+          type="text"
+          name="first_name"
+          value={this.state.first_name}
+          onChange={this.handleChange}
+        />
+          <label htmlFor="last_name">Last Name</label>
+        <InputGroup
+          type="text"
+          name="last_name"
+          value={this.state.last_name}
           onChange={this.handleChange}
         />
         <label htmlFor="password">Password</label>

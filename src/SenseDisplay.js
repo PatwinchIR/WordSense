@@ -140,7 +140,11 @@ class SenseDisplay extends Component {
           selectedSenses: [],
           saveStatus: "",
           saveDisabled: false,
-          originalSenses: []
+          originalSenses: [],
+          fingerprint: {},
+          participantId: undefined,
+          isWrongPosAlertOpen: false,
+          disabledSenseSelection: false
         });
       }
     }
@@ -153,6 +157,10 @@ class SenseDisplay extends Component {
       this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id &&
       nextProps.idGlossPos.token_id !== undefined
     ) {
+      this.setState({
+          isWrongPosAlertOpen: false,
+          disabledSenseSelection: false
+      });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
         nextProps.idGlossPos.gloss,
