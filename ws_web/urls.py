@@ -1,6 +1,6 @@
 # ws_web/urls.py
 
-from django.urls import re_path, path
+from django.urls import re_path
 from . import staff_views, public_views
 
 urlpatterns = [

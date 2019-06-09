@@ -1,4 +1,5 @@
 import django
+
 django.setup()
 
 # WordNet30 Populating
@@ -16,7 +17,7 @@ def populate(x):
                                                  examples=x.examples(),
                                                  lemma_names=x.lemma_names(),
                                                  name=x.name()
-    )
+                                                 )
     print(d, created)
 
 

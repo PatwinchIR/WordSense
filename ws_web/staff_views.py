@@ -125,7 +125,7 @@ class ListSenses(generics.ListAPIView):
                 queryset, many=True, context={'token_id': token_id})
             return Response(serializer.data)
         else:
-            return Response(data=[{'id': -1, 'definition': '', 'examples':[], 'number_of_tags': -1}])
+            return Response(data=[{'id': -1, 'definition': '', 'examples': [], 'number_of_tags': -1}])
 
 
 class ListCreateAnnotation(generics.ListCreateAPIView):
@@ -168,7 +168,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             return Response(status=status.HTTP_302_FOUND)
         else:
             sense_ids_to_be_deleted = existing_sense_ids - \
-                set(data['sense_ids'])
+                                      set(data['sense_ids'])
             for sid in sense_ids_to_be_deleted:
                 qryset = Tags.objects.filter(
                     gloss_with_replacement=data['gloss_with_replacement'],
@@ -189,8 +189,8 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                             sense_ids_to_be_saved),
                         '',
                         fillvalue=list(data.items())
-                )
-                )
+                    )
+                    )
             )
             serializer = TagsSerializer(data=data_to_save, many=True)
             if serializer.is_valid():

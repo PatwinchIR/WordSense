@@ -17,12 +17,7 @@ import {
   ButtonFirst,
   ButtonLast
 } from "pure-react-carousel";
-import {
-  CONTEXT_LENGTH,
-  BASE_URL,
-  PUBLIC_URL,
-  POS_DEFINITION
-} from "./Constants";
+import { CONTEXT_LENGTH, BASE_URL, PUBLIC_URL } from "./Constants";
 import Fingerprint2 from "fingerprintjs2";
 import cookie from "react-cookie";
 import * as Classes from "@blueprintjs/core/lib/esm/common/classes";
@@ -158,8 +153,8 @@ class SenseDisplay extends Component {
       nextProps.idGlossPos.token_id !== undefined
     ) {
       this.setState({
-          isWrongPosAlertOpen: false,
-          disabledSenseSelection: false
+        isWrongPosAlertOpen: false,
+        disabledSenseSelection: false
       });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
@@ -364,48 +359,57 @@ class SenseDisplay extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {this.state.senses.map(sense_example =>
-                      sense_example.id > 0 &&
-                      <tr>
-                        <td>
-                          <Checkbox
-                            style={{ color: "blue" }}
-                            type="checkbox"
-                            value={sense_example.id}
-                            onChange={this.handleSensesChange}
-                            checked={this.loadTags(sense_example.id)}
-                            label={sense_example.definition}
-                            disabled={this.state.disabledSenseSelection}
-                          />
-                        </td>
-                        <td>
-                          <CarouselProvider
-                            naturalSlideWidth={6}
-                            naturalSlideHeight={1}
-                            totalSlides={sense_example.examples.length}
-                            currentSlide={0}
-                            lockOnWindowScroll={false}
-                            dragEnabled={false}
-                            touchEnabled={false}
-                          >
-                            <Slider className="example-slider">
-                              {sense_example.examples.map(example => (
-                                <Slide>
-                                  <Text>{example}</Text>
-                                </Slide>
-                              ))}
-                            </Slider>
-                            <ButtonFirst>{"<<"}</ButtonFirst>
-                            <ButtonBack>{"<"}</ButtonBack>
-                            <ButtonNext>{">"}</ButtonNext>
-                            <ButtonLast>{">>"}</ButtonLast>
-                          </CarouselProvider>
-                        </td>
-                        {!this.props.isPublic && (
-                          <td>{sense_example.number_of_tags}</td>
-                        )}
-                      </tr>
-                    )}
+                    {this.state.senses.map(sense_example => {
+                      if (sense_example.id > 0) {
+                        return (
+                          <tr>
+                            <td>
+                              <Checkbox
+                                style={{ color: "blue" }}
+                                type="checkbox"
+                                value={sense_example.id}
+                                onChange={this.handleSensesChange}
+                                checked={this.loadTags(sense_example.id)}
+                                label={sense_example.definition}
+                                disabled={this.state.disabledSenseSelection}
+                              />
+                            </td>
+                            <td>
+                              <CarouselProvider
+                                naturalSlideWidth={6}
+                                naturalSlideHeight={1}
+                                totalSlides={sense_example.examples.length}
+                                currentSlide={0}
+                                lockOnWindowScroll={false}
+                                dragEnabled={false}
+                                touchEnabled={false}
+                              >
+                                <Slider className="example-slider">
+                                  {sense_example.examples.map(example => (
+                                    <Slide>
+                                      <Text>{example}</Text>
+                                    </Slide>
+                                  ))}
+                                </Slider>
+                                <ButtonFirst>{"<<"}</ButtonFirst>
+                                <ButtonBack>{"<"}</ButtonBack>
+                                <ButtonNext>{">"}</ButtonNext>
+                                <ButtonLast>{">>"}</ButtonLast>
+                              </CarouselProvider>
+                            </td>
+                            {!this.props.isPublic && (
+                              <td>{sense_example.number_of_tags}</td>
+                            )}
+                          </tr>
+                        );
+                      } else
+                        return (
+                          <label>
+                            No senses found for the current token and its part
+                            of speech.
+                          </label>
+                        );
+                    })}
                   </tbody>
                 </HTMLTable>
               </div>

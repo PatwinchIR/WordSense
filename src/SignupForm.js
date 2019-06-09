@@ -35,21 +35,21 @@ class SignupForm extends React.Component {
           value={this.state.username}
           onChange={this.handleChange}
         />
-          <label htmlFor="email">Email</label>
+        <label htmlFor="email">Email</label>
         <InputGroup
           type="text"
           name="email"
           value={this.state.email}
           onChange={this.handleChange}
         />
-          <label htmlFor="first_name">First Name</label>
+        <label htmlFor="first_name">First Name</label>
         <InputGroup
           type="text"
           name="first_name"
           value={this.state.first_name}
           onChange={this.handleChange}
         />
-          <label htmlFor="last_name">Last Name</label>
+        <label htmlFor="last_name">Last Name</label>
         <InputGroup
           type="text"
           name="last_name"

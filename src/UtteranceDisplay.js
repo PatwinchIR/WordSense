@@ -51,14 +51,14 @@ class UtteranceDisplay extends Component {
         gloss: item.gloss_with_replacement,
         pos: item.part_of_speech,
         token_id: item.id,
-        tag_status: tags_set.has(item.id) ?
-            "TAGGED" :
-            (item.part_of_speech === "n"
-                || item.part_of_speech === "v"
-                || item.part_of_speech === "adj"
-                || item.part_of_speech === "adv" ?
-                    "TAGGABLE" : "UNTAGGABLE"
-            )
+        tag_status: tags_set.has(item.id)
+          ? "TAGGED"
+          : item.part_of_speech === "n" ||
+            item.part_of_speech === "v" ||
+            item.part_of_speech === "adj" ||
+            item.part_of_speech === "adv"
+          ? "TAGGABLE"
+          : "UNTAGGABLE"
       });
       return utterances;
     }, {});

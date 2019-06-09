@@ -45,7 +45,6 @@ class UserSerializerWithToken(serializers.ModelSerializer):
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
-
     class Meta:
         fields = '__all__'
         model = Participant
@@ -126,7 +125,6 @@ class SenseModelSerializer(serializers.ModelSerializer):
 
 
 class DerivedTokensSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = DerivedTokens
         fields = (
