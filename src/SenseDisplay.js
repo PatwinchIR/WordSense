@@ -211,6 +211,7 @@ class SenseDisplay extends Component {
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,
         token: this.props.idGlossPos.token_id,
+        transcript_id: this.props.transcriptId,
         sense_offsets: this.state.selectedSenses,
         participant: this.props.isPublic
           ? this.state.participantId

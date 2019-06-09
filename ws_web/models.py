@@ -80,6 +80,7 @@ class Tags(models.Model):
     gloss_with_replacement = models.CharField(
         max_length=255, blank=True, null=True)
     token = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
+    transcript_id = models.PositiveIntegerField(null=True)
     sense_offset = models.PositiveIntegerField(null=True)
     fixed_pos = models.CharField(
         max_length=255, blank=True, null=True)

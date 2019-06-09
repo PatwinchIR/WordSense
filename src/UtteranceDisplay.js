@@ -36,7 +36,8 @@ class UtteranceDisplay extends Component {
   }
 
   processUtterances(rawUtterances) {
-    const utterances = rawUtterances.reduce((utterances, item) => {
+    const tags_set = new Set(rawUtterances.tags_set);
+    const utterances = rawUtterances.data.reduce((utterances, item) => {
       if (!utterances[item.utterance_id]) {
         utterances[item.utterance_id] = {
           speaker_role: item.speaker_role,
@@ -50,7 +51,14 @@ class UtteranceDisplay extends Component {
         gloss: item.gloss_with_replacement,
         pos: item.part_of_speech,
         token_id: item.id,
-        tag_status: item.tag_status
+        tag_status: tags_set.has(item.id) ?
+            "TAGGED" :
+            (item.part_of_speech === "n"
+                || item.part_of_speech === "v"
+                || item.part_of_speech === "adj"
+                || item.part_of_speech === "adv" ?
+                    "TAGGABLE" : "UNTAGGABLE"
+            )
       });
       return utterances;
     }, {});

@@ -113,7 +113,6 @@ class TokenSerializer(serializers.Serializer):
 
 
 class DerivedTokensSerializer(serializers.ModelSerializer):
-    tag_status = serializers.SerializerMethodField()
 
     class Meta:
         model = DerivedTokens
@@ -122,43 +121,11 @@ class DerivedTokensSerializer(serializers.ModelSerializer):
             'gloss_with_replacement',
             'part_of_speech',
             'utterance_id',
-            'speaker_role',
-            'tag_status'
+            'speaker_role'
         )
-
-    def get_tag_status(self, obj):
-        if obj.part_of_speech not in ("n", "v", "adv", "adj"):
-            return "UNTAGGABLE"
-        qryset = Tags.objects.filter(
-            gloss_with_replacement=obj.gloss_with_replacement,
-            token_id=obj.id,
-            participant=self.context['participant_id']
-        )
-        return "TAGGED" if len(qryset) >= 1 else "TAGGABLE"
 
 
 class TagsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tags
         fields = '__all__'
-
-
-class UtteranceSerializer(serializers.ModelSerializer):
-    gloss_pos = serializers.SerializerMethodField()
-
-    class Meta:
-        fields = (
-            'id',
-            'order',
-            'id_gloss_pos',
-            'part_of_speech',
-            'speaker_role',
-        )
-        model = Utterance
-
-    def get_gloss_pos(self, obj):
-        gloss_pos = TokenSerializer(data=[{'word': word, 'pos': pos, 'lemma': lemma} for word, pos, lemma in zip(
-            obj.gloss.split(' '), obj.part_of_speech.split(' '), obj.stem.split(' '))], many=True)
-        if gloss_pos.is_valid():
-            return gloss_pos.validated_data
-        return gloss_pos.initial_data

@@ -88,16 +88,6 @@ class ListTranscript(generics.ListAPIView):
         return Response(serializer.data)
 
 
-class ListUtterance(generics.ListAPIView):
-    serializer_class = UtteranceSerializer
-
-    def list(self, request, *args, **kwargs):
-        transcript_id = request.query_params['transcript_id']
-        self.queryset = Utterance.objects.get_queryset().filter(transcript_id=transcript_id)
-        serializer = UtteranceSerializer(self.queryset, many=True)
-        return Response(serializer.data)
-
-
 class ListDerivedTokens(generics.ListAPIView):
     serializer_class = DerivedTokensSerializer
 
@@ -106,10 +96,13 @@ class ListDerivedTokens(generics.ListAPIView):
         participant_id = request.query_params['participant_id']
         self.queryset = DerivedTokens.objects.get_queryset().filter(
             transcript_id=transcript_id).order_by('utterance_id', 'token_id')
+        tags_set = set(Tags.objects.filter(
+            participant=participant_id,
+            transcript_id=transcript_id
+        ).values_list('token_id', flat=True))
         if len(self.queryset) > 0:
-            serializer = DerivedTokensSerializer(self.queryset, many=True, context={
-                                                 'participant_id': participant_id})
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            serializer = DerivedTokensSerializer(self.queryset, many=True)
+            return Response(data={'data': serializer.data, 'tags_set': tags_set}, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -199,8 +192,3 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
             else:
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DetailCollection(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Collection.objects.all()
-    serializer_class = CollectionSerializer
