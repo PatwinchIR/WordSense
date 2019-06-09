@@ -6,7 +6,7 @@ from ws_web.models import Tags, Participant
 
 class TagsAdmin(admin.ModelAdmin):
     list_display = ['gloss_with_replacement', 'token', 'sense', 'fixed_pos', 'participant']
-    readonly_fields = ['gloss_with_replacement', 'token', 'sense', 'fixed_pos', 'participant']
+    readonly_fields = ['gloss_with_replacement', 'fixed_pos']
 
 
 class ParticipantAdmin(admin.ModelAdmin):
