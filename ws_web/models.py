@@ -81,7 +81,7 @@ class Tags(models.Model):
         max_length=255, blank=True, null=True)
     token = models.ForeignKey('DerivedTokens', on_delete=models.CASCADE)
     transcript_id = models.PositiveIntegerField(null=True)
-    sense_offset = models.PositiveIntegerField(null=True)
+    sense = models.ForeignKey('WordNet30', on_delete=models.PROTECT, null=True)
     fixed_pos = models.CharField(
         max_length=255, blank=True, null=True)
     participant = models.ForeignKey('Participant', on_delete=models.PROTECT)
@@ -89,7 +89,7 @@ class Tags(models.Model):
     class Meta:
         db_table = 'tags'
         app_label = 'ws_web'
-        unique_together = ('token', 'participant', 'sense_offset')
+        unique_together = ('token', 'participant', 'sense')
 
 
 # This is an auto-generated Django model module.

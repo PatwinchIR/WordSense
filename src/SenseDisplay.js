@@ -188,11 +188,11 @@ class SenseDisplay extends Component {
     });
   }
 
-  loadTags(offset) {
+  loadTags(id) {
     if (this.state.selectedSenses.length === 0) {
       return false;
     } else {
-      return this.state.selectedSenses.some(item => item === offset);
+      return this.state.selectedSenses.some(item => item === id);
     }
   }
 
@@ -212,7 +212,7 @@ class SenseDisplay extends Component {
         gloss_with_replacement: this.props.idGlossPos.gloss,
         token: this.props.idGlossPos.token_id,
         transcript_id: this.props.transcriptId,
-        sense_offsets: this.state.selectedSenses,
+        sense_ids: this.state.selectedSenses,
         participant: this.props.isPublic
           ? this.state.participantId
           : this.props.participantId,
@@ -364,16 +364,17 @@ class SenseDisplay extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {this.state.senses.map(sense_example => [
+                    {this.state.senses.map(sense_example =>
+                      sense_example.id > 0 &&
                       <tr>
                         <td>
                           <Checkbox
                             style={{ color: "blue" }}
                             type="checkbox"
-                            value={sense_example.offset}
+                            value={sense_example.id}
                             onChange={this.handleSensesChange}
-                            checked={this.loadTags(sense_example.offset)}
-                            label={sense_example.sense}
+                            checked={this.loadTags(sense_example.id)}
+                            label={sense_example.definition}
                             disabled={this.state.disabledSenseSelection}
                           />
                         </td>
@@ -404,7 +405,7 @@ class SenseDisplay extends Component {
                           <td>{sense_example.number_of_tags}</td>
                         )}
                       </tr>
-                    ])}
+                    )}
                   </tbody>
                 </HTMLTable>
               </div>

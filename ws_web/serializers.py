@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 
-from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags, Participant
+from ws_web.models import Collection, Corpus, Transcript, Utterance, Token, DerivedTokens, Tags, Participant, WordNet30
 from django.contrib.auth.models import User
 
 
@@ -106,10 +106,23 @@ class SenseSerializer(serializers.Serializer):
         return obj.examples()
 
 
-class TokenSerializer(serializers.Serializer):
-    word = serializers.CharField(max_length=255)
-    pos = serializers.CharField(max_length=255)
-    lemma = serializers.CharField(max_length=255)
+class SenseModelSerializer(serializers.ModelSerializer):
+    number_of_tags = serializers.SerializerMethodField()
+    examples = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WordNet30
+        fields = ('id', 'definition', 'examples', 'number_of_tags')
+
+    def get_number_of_tags(self, obj):
+        qryset = Tags.objects.filter(
+            sense_id=obj.id,
+            token_id=self.context['token_id']
+        )
+        return len(qryset)
+
+    def get_examples(self, obj):
+        return eval(obj.examples)
 
 
 class DerivedTokensSerializer(serializers.ModelSerializer):

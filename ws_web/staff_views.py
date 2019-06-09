@@ -8,10 +8,10 @@ from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from ws_web.models import Collection, Corpus, Transcript, DerivedTokens, Tags
+from ws_web.models import Collection, Corpus, Transcript, DerivedTokens, Tags, WordNet30
 from ws_web.serializers import CollectionSerializer, CorpusSerializer, TranscriptSerializer, \
     SenseSerializer, DerivedTokensSerializer, TagsSerializer, UserSerializerWithToken, UserSerializer, \
-    ParticipantSerializer
+    ParticipantSerializer, SenseModelSerializer
 from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
@@ -108,7 +108,7 @@ class ListDerivedTokens(generics.ListAPIView):
 
 
 class ListSenses(generics.ListAPIView):
-    serializer_class = SenseSerializer
+    serializer_class = SenseModelSerializer
     queryset = ''
 
     def list(self, request, *args, **kwargs):
@@ -116,10 +116,16 @@ class ListSenses(generics.ListAPIView):
         token_id = request.query_params['token_id']
         word = lemmatizer.lemmatize(request.query_params['gloss'], pos_map[pos])
 
-        synsets = wn.synsets(word, pos_map[pos])
-        serializer = SenseSerializer(
-            synsets, many=True, context={'token_id': token_id})
-        return Response(serializer.data)
+        queryset = WordNet30.objects.filter(
+            word=word,
+            pos=pos_map[pos]
+        )
+        if len(queryset) > 0:
+            serializer = SenseModelSerializer(
+                queryset, many=True, context={'token_id': token_id})
+            return Response(serializer.data)
+        else:
+            return Response(data=[{'id': -1, 'definition': '', 'examples':[], 'number_of_tags': -1}])
 
 
 class ListCreateAnnotation(generics.ListCreateAPIView):
@@ -133,7 +139,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             gloss_with_replacement=gloss_with_replacement,
             token_id=token_id,
             participant=participant_id
-        ).values_list('sense_offset', flat=True)
+        ).values_list('sense_id', flat=True)
         data = list(self.queryset)
         return Response(data=data, status=status.HTTP_200_OK)
 
@@ -143,7 +149,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             serializer = TagsSerializer(data={
                 'gloss_with_replacement': data['gloss_with_replacement'],
                 'token': data['token'],
-                'sense_offset': None,
+                'sense': None,
                 'fixed_pos': data['fixed_pos'],
                 'participant': data['participant']
             })
@@ -153,34 +159,34 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             else:
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        existing_sense_offsets = set(Tags.objects.filter(
+        existing_sense_ids = set(Tags.objects.filter(
             gloss_with_replacement=data['gloss_with_replacement'],
             token_id=data['token'],
             participant=data['participant']
-        ).values_list('sense_offset', flat=True))
-        if set(data['sense_offsets']) == existing_sense_offsets:
+        ).values_list('sense_id', flat=True))
+        if set(data['sense_ids']) == existing_sense_ids:
             return Response(status=status.HTTP_302_FOUND)
         else:
-            sense_offsets_to_be_deleted = existing_sense_offsets - \
-                set(data['sense_offsets'])
-            for offset in sense_offsets_to_be_deleted:
+            sense_ids_to_be_deleted = existing_sense_ids - \
+                set(data['sense_ids'])
+            for sid in sense_ids_to_be_deleted:
                 qryset = Tags.objects.filter(
                     gloss_with_replacement=data['gloss_with_replacement'],
                     token_id=data['token'],
                     participant=data['participant'],
-                    sense_offset=offset
+                    sense_id=sid
                 )
                 for obj in qryset:
                     obj.delete()
 
-            sense_offsets_to_be_saved = set(
-                data['sense_offsets']) - existing_sense_offsets
-            data.pop('sense_offsets')
+            sense_ids_to_be_saved = set(
+                data['sense_ids']) - existing_sense_ids
+            data.pop('sense_ids')
             data_to_save = list(
                 map(lambda item: dict(item[1] + [item[0]]),
                     zip_longest(
-                        map(lambda offset: ('sense_offset', offset),
-                            sense_offsets_to_be_saved),
+                        map(lambda sid: ('sense', sid),
+                            sense_ids_to_be_saved),
                         '',
                         fillvalue=list(data.items())
                 )
