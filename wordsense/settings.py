@@ -102,13 +102,7 @@ WSGI_APPLICATION = 'wordsense.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-         'ENGINE': 'django.db.backends.postgresql',
-         'NAME': os.environ.get('WORDSENSE_DB_NAME'),
-         'USER': os.environ.get('WORDSENSE_DB_USER'),
-         'PASSWORD': os.environ.get('WORDSENSE_DB_PW'),
-         'HOST': os.environ.get('WORDSENSE_DB_HOST')
-     } if os.environ.get("WORDSENSE_ENV") == 'prod' else {
+    'default': django_heroku.dj_database_url.config() if os.environ.get("WORDSENSE_ENV") == 'prod' else {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'wordsense',
         'USER': 'postgres',
