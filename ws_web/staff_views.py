@@ -16,6 +16,12 @@ from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
 lemmatizer = WordNetLemmatizer()
+pos_map = {
+    'v': wn.VERB,
+    'n': wn.NOUN,
+    'adj': wn.ADJ,
+    'adv': wn.ADV
+}
 
 
 @api_view(['GET'])
@@ -115,9 +121,9 @@ class ListSenses(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         pos = request.query_params['pos']
         token_id = request.query_params['token_id']
-        word = lemmatizer.lemmatize(request.query_params['gloss'], pos)
+        word = lemmatizer.lemmatize(request.query_params['gloss'], pos_map[pos])
 
-        synsets = wn.synsets(word, pos)
+        synsets = wn.synsets(word, pos_map[pos])
         serializer = SenseSerializer(
             synsets, many=True, context={'token_id': token_id})
         return Response(serializer.data)
