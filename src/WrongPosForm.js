@@ -9,10 +9,6 @@ import {
 } from "@blueprintjs/core";
 import { BASE_URL, PUBLIC_URL } from "./Constants";
 import cookie from "react-cookie";
-import classNames from "classnames";
-import * as Classes from "@blueprintjs/core/lib/esm/common/classes";
-
-const OVERLAY_CLASS = "docs-overlay-example-transition";
 
 class WrongPosForm extends React.Component {
   constructor(props) {
@@ -81,13 +77,6 @@ class WrongPosForm extends React.Component {
   }
 
   render() {
-    const classes = classNames(
-      Classes.CARD,
-      Classes.ELEVATION_4,
-      OVERLAY_CLASS,
-      "auth-portal-card"
-    );
-
     return [
       <Text className="wrongPosConfirm">
         Are you sure that you want to mark this POS as wrong?

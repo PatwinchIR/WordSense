@@ -115,13 +115,13 @@ class SenseDisplay extends Component {
           )
         });
       }
-      const idkOption={
+      const idkOption = {
         id: 0,
         definition: "I don't know",
         examples: [],
         number_of_tags: 0
       };
-      senses.unshift(idkOption);
+      if (senses[0].id > 0) senses.unshift(idkOption);
       this.setState({
         senses: senses,
         originalSenses: JSON.parse(JSON.stringify(tags)),
@@ -269,7 +269,10 @@ class SenseDisplay extends Component {
           saveStatus: "SAVED",
           participantId: resData["participant_id"]
         });
-        this.props.changeTagStatus(this.props.utteranceIndex, this.props.tokenIndex);
+        this.props.changeTagStatus(
+          this.props.utteranceIndex,
+          this.props.tokenIndex
+        );
       })
       .catch(error => console.log(error));
   }
@@ -372,13 +375,19 @@ class SenseDisplay extends Component {
                           <tr>
                             <td>
                               <Checkbox
-                                style={{ color: sense_example.id === 0 ? "red" : "blue"  }}
+                                style={{
+                                  color: sense_example.id === 0 ? "red" : "blue"
+                                }}
                                 type="checkbox"
                                 value={sense_example.id}
                                 onChange={this.handleSensesChange}
                                 checked={this.loadTags(sense_example.id)}
                                 label={sense_example.definition}
-                                disabled={this.state.selectedSenses.includes(0) ? sense_example.id !== 0  : this.state.disabledSenseSelection}
+                                disabled={
+                                  this.state.selectedSenses.includes(0)
+                                    ? sense_example.id !== 0
+                                    : this.state.disabledSenseSelection
+                                }
                               />
                             </td>
                             <td>

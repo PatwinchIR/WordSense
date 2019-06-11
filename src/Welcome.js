@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import "./App.css";
 import { H1 } from "@blueprintjs/core";
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 class Welcome extends Component {
   constructor(props) {

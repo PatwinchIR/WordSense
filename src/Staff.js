@@ -202,7 +202,10 @@ class Staff extends Component {
     });
   }
 
-  changeTagStatus(utteranceIndexForTagStatusChange, tokenIndexForTagStatusChange) {
+  changeTagStatus(
+    utteranceIndexForTagStatusChange,
+    tokenIndexForTagStatusChange
+  ) {
     this.setState({
       utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange,
       tokenIndexForTagStatusChange: tokenIndexForTagStatusChange
@@ -362,7 +365,9 @@ class Staff extends Component {
             utteranceIndexForTagStatusChange={
               this.state.utteranceIndexForTagStatusChange
             }
-            tokenIndexForTagStatusChange={this.state.tokenIndexForTagStatusChange}
+            tokenIndexForTagStatusChange={
+              this.state.tokenIndexForTagStatusChange
+            }
           />
         </div>
         <div id="lower-container">

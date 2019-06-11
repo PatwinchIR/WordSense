@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { WithStore } from "pure-react-carousel";
-import { Button, Icon } from "@blueprintjs/core";
+import { Button } from "@blueprintjs/core";
 
 class ButtonDiv extends Component {
   constructor(props) {

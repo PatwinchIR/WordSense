@@ -12,7 +12,7 @@ from nltk.stem import WordNetLemmatizer
 
 lemmatizer = WordNetLemmatizer()
 
-TOTAL_UTTERANCES = 100
+TOTAL_UTTERANCES = 10
 pos_map = {
     'v': wn.VERB,
     'n': wn.NOUN,
@@ -31,7 +31,7 @@ class ListDerivedTokens(generics.ListAPIView):
         if len(self.queryset) > 0:
             serializer = DerivedTokensSerializer(
                 self.queryset, many=True, context={'participant_id': None})
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(data={'data': serializer.data, 'tags_set': set()}, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -120,13 +120,13 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         else:
             data_to_save = None
             if 0 in data['sense_ids']:
-                data_to_save = {
+                data_to_save = [{
                     'gloss_with_replacement': data['gloss_with_replacement'],
                     'token': data['token'],
                     'sense': None,
                     'fixed_pos': None,
                     'participant': data['participant']
-                }
+                }]
             else:
                 sense_ids_to_be_deleted = existing_sense_ids - \
                                           set(data['sense_ids'])
