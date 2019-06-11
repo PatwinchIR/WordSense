@@ -201,17 +201,20 @@ class UtteranceDisplay extends Component {
       this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
     }
     if (
-      this.props.utteranceIndexForTagStatusChange !==
+        (this.props.utteranceIndexForTagStatusChange !== -1 && this.props.utteranceIndexForTagStatusChange !==
         nextProps.utteranceIndexForTagStatusChange &&
-      nextProps.utteranceIndexForTagStatusChange !== -1
+      nextProps.utteranceIndexForTagStatusChange !== -1) ||
+        (this.props.utteranceIndexForTagStatusChange !== -1 && this.props.utteranceIndexForTagStatusChange ===
+        nextProps.utteranceIndexForTagStatusChange &&
+            this.props.tokenIndexForTagStatusChange !== nextProps.tokenIndexForTagStatusChange && nextProps.tokenIndexForTagStatusChange !== -1)
     ) {
       let utterances = [...this.state.utterances];
       let utterance = {
         ...utterances[nextProps.utteranceIndexForTagStatusChange]
       };
-      let token = { ...utterance.id_gloss_pos[nextProps.tokenIndex] };
+      let token = { ...utterance.id_gloss_pos[nextProps.tokenIndexForTagStatusChange] };
       token.tag_status = "TAGGED";
-      utterance.id_gloss_pos[nextProps.tokenIndex] = token;
+      utterance.id_gloss_pos[nextProps.tokenIndexForTagStatusChange] = token;
       utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
       this.setState({ utterances: utterances });
     }

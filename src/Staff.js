@@ -37,6 +37,7 @@ class Staff extends Component {
     idGlossPos: "",
     activeWord: -1,
     utteranceIndexForTagStatusChange: -1,
+    tokenIndexForTagStatusChange: -1,
     utteranceIndex: -1,
     tokenIndex: -1,
     fingerprint: {}
@@ -201,9 +202,10 @@ class Staff extends Component {
     });
   }
 
-  changeTagStatus(utteranceIndexForTagStatusChange) {
+  changeTagStatus(utteranceIndexForTagStatusChange, tokenIndexForTagStatusChange) {
     this.setState({
-      utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange
+      utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange,
+      tokenIndexForTagStatusChange: tokenIndexForTagStatusChange
     });
   }
 
@@ -360,7 +362,7 @@ class Staff extends Component {
             utteranceIndexForTagStatusChange={
               this.state.utteranceIndexForTagStatusChange
             }
-            tokenIndex={this.state.tokenIndex}
+            tokenIndexForTagStatusChange={this.state.tokenIndexForTagStatusChange}
           />
         </div>
         <div id="lower-container">
@@ -371,6 +373,7 @@ class Staff extends Component {
             idGlossPos={this.state.idGlossPos}
             changeTagStatus={this.changeTagStatus}
             utteranceIndex={this.state.utteranceIndex}
+            tokenIndex={this.state.tokenIndex}
             transcriptId={this.state.selectedTranscriptID.value}
           />
         </div>

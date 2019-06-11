@@ -12,6 +12,7 @@ class Public extends Component {
       activeWord: -1,
       idGlossPos: "",
       utteranceIndexForTagStatusChange: -1,
+      tokenIndexForTagStatusChange: -1,
       utteranceIndex: -1,
       tokenIndex: -1
     };
@@ -29,9 +30,10 @@ class Public extends Component {
     });
   }
 
-  changeTagStatus(utteranceIndexForTagStatusChange) {
+  changeTagStatus(utteranceIndexForTagStatusChange, tokenIndexForTagStatusChange) {
     this.setState({
-      utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange
+      utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange,
+        tokenIndexForTagStatusChange: tokenIndexForTagStatusChange,
     });
   }
 
@@ -52,7 +54,7 @@ class Public extends Component {
             utteranceIndexForTagStatusChange={
               this.state.utteranceIndexForTagStatusChange
             }
-            tokenIndex={this.state.tokenIndex}
+            tokenIndexForTagStatusChange={this.state.tokenIndexForTagStatusChange}
           />
         </div>
         <div id="lower-container">
@@ -61,6 +63,7 @@ class Public extends Component {
             idGlossPos={this.state.idGlossPos}
             changeTagStatus={this.changeTagStatus}
             utteranceIndex={this.state.utteranceIndex}
+            tokenIndex={this.state.tokenIndex}
           />
         </div>
       </div>

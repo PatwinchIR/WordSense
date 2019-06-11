@@ -115,6 +115,13 @@ class SenseDisplay extends Component {
           )
         });
       }
+      const idkOption={
+        id: 0,
+        definition: "I don't know",
+        examples: [],
+        number_of_tags: 0
+      };
+      senses.unshift(idkOption);
       this.setState({
         senses: senses,
         originalSenses: JSON.parse(JSON.stringify(tags)),
@@ -262,7 +269,7 @@ class SenseDisplay extends Component {
           saveStatus: "SAVED",
           participantId: resData["participant_id"]
         });
-        this.props.changeTagStatus(this.props.utteranceIndex);
+        this.props.changeTagStatus(this.props.utteranceIndex, this.props.tokenIndex);
       })
       .catch(error => console.log(error));
   }
@@ -360,18 +367,18 @@ class SenseDisplay extends Component {
                   </thead>
                   <tbody>
                     {this.state.senses.map(sense_example => {
-                      if (sense_example.id > 0) {
+                      if (sense_example.id >= 0) {
                         return (
                           <tr>
                             <td>
                               <Checkbox
-                                style={{ color: "blue" }}
+                                style={{ color: sense_example.id === 0 ? "red" : "blue"  }}
                                 type="checkbox"
                                 value={sense_example.id}
                                 onChange={this.handleSensesChange}
                                 checked={this.loadTags(sense_example.id)}
                                 label={sense_example.definition}
-                                disabled={this.state.disabledSenseSelection}
+                                disabled={this.state.selectedSenses.includes(0) ? sense_example.id !== 0  : this.state.disabledSenseSelection}
                               />
                             </td>
                             <td>
