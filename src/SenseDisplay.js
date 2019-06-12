@@ -116,18 +116,25 @@ class SenseDisplay extends Component {
         });
       }
       const idkOption = {
-        id: 0,
+        id: 117666,
         definition: "I don't know",
         examples: [],
         number_of_tags: 0
       };
-      if (senses[0].id > 0) senses.unshift(idkOption);
+      const otherMeaningOption = {
+        id: 117667,
+        definition: "Other meanings (None of the below)",
+        examples: [],
+        number_of_tags: 0
+      };
+      if (senses[0].id > 0) senses.unshift(idkOption, otherMeaningOption);
       this.setState({
         senses: senses,
         originalSenses: JSON.parse(JSON.stringify(tags)),
         selectedSenses: tags,
         saveStatus: tags.length > 0 ? "SAVED" : "SAVE",
-        saveDisabled: tags.length === 0
+        saveDisabled: tags.length === 0,
+        disabledSenseSelection: tags[0] === null
       });
     } catch (e) {
       console.log(e);
@@ -285,7 +292,6 @@ class SenseDisplay extends Component {
   }
 
   handleWrongPosOpen() {
-    console.log(this.state.isWrongPosAlertOpen);
     this.setState({ isWrongPosAlertOpen: true });
   }
 
@@ -352,6 +358,10 @@ class SenseDisplay extends Component {
                   }
                   disableSenseSelection={this.disableSenseSelection}
                   fingerprint={this.state.fingerprint}
+                  transcriptId={this.props.transcriptId}
+                  changeTagStatus={this.props.changeTagStatus}
+                  utteranceIndex={this.props.utteranceIndex}
+                  tokenIndex={this.props.tokenIndex}
                 />
               </div>
             </Overlay>
@@ -370,13 +380,17 @@ class SenseDisplay extends Component {
                   </thead>
                   <tbody>
                     {this.state.senses.map(sense_example => {
-                      if (sense_example.id >= 0) {
+                      if (sense_example.id > 0) {
                         return (
                           <tr>
                             <td>
                               <Checkbox
                                 style={{
-                                  color: sense_example.id === 0 ? "red" : "blue"
+                                  color:
+                                    sense_example.id === 117666 ||
+                                    sense_example.id === 117667
+                                      ? "red"
+                                      : "blue"
                                 }}
                                 type="checkbox"
                                 value={sense_example.id}
@@ -384,9 +398,13 @@ class SenseDisplay extends Component {
                                 checked={this.loadTags(sense_example.id)}
                                 label={sense_example.definition}
                                 disabled={
-                                  this.state.selectedSenses.includes(0)
-                                    ? sense_example.id !== 0
-                                    : this.state.disabledSenseSelection
+                                  this.state.disabledSenseSelection
+                                    ? true
+                                    : this.state.selectedSenses.includes(117666)
+                                    ? sense_example.id !== 117666
+                                    : this.state.selectedSenses.includes(117667)
+                                    ? sense_example.id !== 117667
+                                    : false
                                 }
                               />
                             </td>

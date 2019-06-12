@@ -37,6 +37,7 @@ class WrongPosForm extends React.Component {
       body: JSON.stringify({
         gloss_with_replacement: this.props.idGlossPos.gloss,
         token: this.props.idGlossPos.token_id,
+        transcript_id: this.props.transcriptId,
         sense_offsets: [],
         participant: this.props.participantId,
         fixed_pos: this.state.selectedPos,
@@ -56,6 +57,10 @@ class WrongPosForm extends React.Component {
             )
           });
           this.props.disableSenseSelection();
+          this.props.changeTagStatus(
+            this.props.utteranceIndex,
+            this.props.tokenIndex
+          );
           return response.json();
         } else {
           toaster.show({
@@ -79,7 +84,8 @@ class WrongPosForm extends React.Component {
   render() {
     return [
       <Text className="wrongPosConfirm">
-        Are you sure that you want to mark this POS as wrong?
+        Are you sure that you want to mark this POS as wrong? (You cannot UNDO
+        this)
       </Text>,
       <Text className="choiceTitle">
         Your choice of part of speech for "{this.props.idGlossPos.gloss}":

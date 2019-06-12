@@ -146,9 +146,17 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data
         if data.get('fixed_pos', '') in ('n', 'v', 'adj', 'adv', 'other'):
+            qryset = Tags.objects.filter(
+                gloss_with_replacement=data['gloss_with_replacement'],
+                token_id=data['token'],
+                participant=data['participant']
+            )
+            for obj in qryset:
+                obj.delete()
             serializer = TagsSerializer(data={
                 'gloss_with_replacement': data['gloss_with_replacement'],
                 'token': data['token'],
+                'transcript_id': data['transcript_id'],
                 'sense': None,
                 'fixed_pos': data['fixed_pos'],
                 'participant': data['participant']
@@ -167,40 +175,31 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         if set(data['sense_ids']) == existing_sense_ids:
             return Response(status=status.HTTP_302_FOUND)
         else:
-            data_to_save = None
-            if 0 in data['sense_ids']:
-                data_to_save = [{
-                    'gloss_with_replacement': data['gloss_with_replacement'],
-                    'token': data['token'],
-                    'sense': None,
-                    'participant': data['participant']
-                }]
-            else:
-                sense_ids_to_be_deleted = existing_sense_ids - \
-                                          set(data['sense_ids'])
-                for sid in sense_ids_to_be_deleted:
-                    qryset = Tags.objects.filter(
-                        gloss_with_replacement=data['gloss_with_replacement'],
-                        token_id=data['token'],
-                        participant=data['participant'],
-                        sense_id=sid
-                    )
-                    for obj in qryset:
-                        obj.delete()
-
-                sense_ids_to_be_saved = set(
-                    data['sense_ids']) - existing_sense_ids
-                data.pop('sense_ids')
-                data_to_save = list(
-                    map(lambda item: dict(item[1] + [item[0]]),
-                        zip_longest(
-                            map(lambda sid: ('sense', sid),
-                                sense_ids_to_be_saved),
-                            '',
-                            fillvalue=list(data.items())
-                        )
-                        )
+            sense_ids_to_be_deleted = existing_sense_ids - \
+                                      set(data['sense_ids'])
+            for sid in sense_ids_to_be_deleted:
+                qryset = Tags.objects.filter(
+                    gloss_with_replacement=data['gloss_with_replacement'],
+                    token_id=data['token'],
+                    participant=data['participant'],
+                    sense_id=sid
                 )
+                for obj in qryset:
+                    obj.delete()
+
+            sense_ids_to_be_saved = set(
+                data['sense_ids']) - existing_sense_ids
+            data.pop('sense_ids')
+            data_to_save = list(
+                map(lambda item: dict(item[1] + [item[0]]),
+                    zip_longest(
+                        map(lambda sid: ('sense', sid),
+                            sense_ids_to_be_saved),
+                        '',
+                        fillvalue=list(data.items())
+                    )
+                    )
+            )
             serializer = TagsSerializer(data=data_to_save, many=True)
             if serializer.is_valid():
                 serializer.save()
