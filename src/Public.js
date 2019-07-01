@@ -14,19 +14,26 @@ class Public extends Component {
       utteranceIndexForTagStatusChange: -1,
       tokenIndexForTagStatusChange: -1,
       utteranceIndex: -1,
-      tokenIndex: -1
+      tokenIndex: -1,
+      workerId: this.getParameterByName("workerId"),
+      workUnitId: -1,
+      participantId: "undefined"
     };
 
     this.handleGlossClick = this.handleGlossClick.bind(this);
     this.changeTagStatus = this.changeTagStatus.bind(this);
+    this.setWorkerId = this.setWorkerId.bind(this);
+    this.getParameterByName = this.getParameterByName.bind(this);
   }
 
-  handleGlossClick(idGlossPos, utteranceIndex, tokenIndex) {
+  handleGlossClick(idGlossPos, utteranceIndex, tokenIndex, workUnitId, participantId) {
     this.setState({
       activeWord: idGlossPos.token_id,
       idGlossPos: idGlossPos,
       utteranceIndex: utteranceIndex,
-      tokenIndex: tokenIndex
+      tokenIndex: tokenIndex,
+      workUnitId: workUnitId,
+      participantId: participantId
     });
   }
 
@@ -38,6 +45,24 @@ class Public extends Component {
       utteranceIndexForTagStatusChange: utteranceIndexForTagStatusChange,
       tokenIndexForTagStatusChange: tokenIndexForTagStatusChange
     });
+  }
+
+  componentDidMount() {
+    this.setWorkerId();
+  }
+
+  getParameterByName(name) {
+    var url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+
+  setWorkerId() {
+    this.setState({workerId: this.getParameterByName("workerId")});
   }
 
   render() {
@@ -60,6 +85,7 @@ class Public extends Component {
             tokenIndexForTagStatusChange={
               this.state.tokenIndexForTagStatusChange
             }
+            workerId={this.state.workerId}
           />
         </div>
         <div id="lower-container">
@@ -69,6 +95,9 @@ class Public extends Component {
             changeTagStatus={this.changeTagStatus}
             utteranceIndex={this.state.utteranceIndex}
             tokenIndex={this.state.tokenIndex}
+            workerId={this.state.workerId}
+            workUnitId={this.state.workUnitId}
+            participantId={this.state.participantId}
           />
         </div>
       </div>

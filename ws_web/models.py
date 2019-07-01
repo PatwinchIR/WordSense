@@ -2,26 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-class WorkUnit(models.Model):
-    WORK_UNIT_STATUS = (
-        ("idle", "IDLE"),
-        ("active", "ACTIVE")
-    )
-
-    utterance_ids = models.TextField()
-    transcript_id = models.PositiveIntegerField()
-    corpus_id = models.PositiveIntegerField()
-    collection_id = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(
-        max_length=20, choices=WORK_UNIT_STATUS, default="idle")
-    times_worked = models.PositiveIntegerField(default=0)
-    last_active_time = models.DateTimeField()
-
-    class Meta:
-        db_table = 'work_unit'
-        app_label = 'ws_web'
-
-
 class WordNet30(models.Model):
     word = models.CharField(max_length=100, default='')
     definition = models.TextField()
@@ -50,9 +30,39 @@ class Participant(models.Model):
     browser_user_agent = models.TextField()
     browser_platform = models.TextField()
     ip = models.GenericIPAddressField()
+    worker_id = models.CharField(max_length=255, default='', null=True)
 
     class Meta:
         db_table = 'participant'
+        app_label = 'ws_web'
+
+
+class WorkUnit(models.Model):
+    WORK_UNIT_STATUS = (
+        ("idle", "IDLE"),
+        ("active", "ACTIVE")
+    )
+
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, null=True)
+    transcript_id = models.PositiveIntegerField()
+    corpus_id = models.PositiveIntegerField()
+    collection_id = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(
+        max_length=20, choices=WORK_UNIT_STATUS, default="idle")
+    times_worked = models.PositiveIntegerField(default=0)
+    last_active_time = models.DateTimeField()
+
+    class Meta:
+        db_table = 'work_unit'
+        app_label = 'ws_web'
+
+
+class WorkUnitContent(models.Model):
+    utterance_id = models.PositiveIntegerField()
+    work_unit = models.ForeignKey(WorkUnit, on_delete=models.CASCADE, null=False)
+
+    class Meta:
+        db_table = 'work_unit_content'
         app_label = 'ws_web'
 
 

@@ -41,7 +41,9 @@ class WrongPosForm extends React.Component {
         sense_offsets: [],
         participant: this.props.participantId,
         fixed_pos: this.state.selectedPos,
-        fingerprint: this.props.fingerprint
+        fingerprint: this.props.fingerprint,
+        workerId: this.props.workerId,
+        workUnitId: this.props.workUnitId
       })
     })
       .then(response => {

@@ -40,7 +40,8 @@ class Staff extends Component {
     tokenIndexForTagStatusChange: -1,
     utteranceIndex: -1,
     tokenIndex: -1,
-    fingerprint: {}
+    fingerprint: {},
+    workUnitId: -1
   };
 
   constructor(props) {
@@ -193,7 +194,7 @@ class Staff extends Component {
     }
   }
 
-  handleGlossClick(idGlossPos, utteranceIndex, tokenIndex) {
+  handleGlossClick(idGlossPos, utteranceIndex, tokenIndex, workUnitId, participantId) {
     this.setState({
       activeWord: idGlossPos.token_id,
       idGlossPos: idGlossPos,
@@ -380,6 +381,7 @@ class Staff extends Component {
             utteranceIndex={this.state.utteranceIndex}
             tokenIndex={this.state.tokenIndex}
             transcriptId={this.state.selectedTranscriptID.value}
+            workUnitId={this.state.workUnitId}
           />
         </div>
       </div>

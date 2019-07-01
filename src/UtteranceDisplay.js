@@ -25,7 +25,9 @@ class UtteranceDisplay extends Component {
       displayFocusUtterance: [],
       loading: false,
       confirmed: false,
-      inputUtteranceIndex: 0
+      inputUtteranceIndex: 0,
+      workerId: "unset",
+      workUnitId: -1
     };
 
     this.loadUtterancesForSelectedTranscript = this.loadUtterancesForSelectedTranscript.bind(
@@ -115,7 +117,7 @@ class UtteranceDisplay extends Component {
           this.props.isPublic ? PUBLIC_URL : ""
         }get_utterances/?transcript_id=${transcriptID}&participant_id=${
           this.props.participantId
-        }`,
+        }&workerId=${this.props.workerId}`,
         {
           headers: {
             Authorization: this.props.isPublic
@@ -130,12 +132,14 @@ class UtteranceDisplay extends Component {
             return res.json();
           } else {
             throw new Error(
-              this.props.isPublic ? "Fetching Error" : res.statusText
+              res.statusText
             );
           }
         })
         .then(utterances =>
           this.setState({
+            participantId: utterances.participant_id,
+            workUnitId: utterances.work_unit_id,
             utterances: this.processUtterances(utterances),
             loading: false,
             displayFocusUtterance: [],
@@ -171,6 +175,7 @@ class UtteranceDisplay extends Component {
         loading: true,
         confirmed: true
       });
+      console.log(this.props.workerId);
       this.loadUtterancesForSelectedTranscript(-1);
     }
   }
@@ -308,6 +313,10 @@ class UtteranceDisplay extends Component {
                       setDisplayFocus={this.setDisplayFocus}
                       handleGlossClick={this.props.handleGlossClick}
                       activeWord={this.props.activeWord}
+                      workUnitId={this.state.workUnitId}
+                      participantId={this.props.isPublic
+                                      ? this.state.participantId
+                                      : this.props.participantId}
                     />
                   </Slide>
                 ))}

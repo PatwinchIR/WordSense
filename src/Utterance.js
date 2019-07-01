@@ -54,7 +54,9 @@ class Utterance extends Component {
                 this.props.handleGlossClick(
                   idGlossPos,
                   this.props.index,
-                  tokenIndex
+                  tokenIndex,
+                  this.props.workUnitId,
+                  this.props.participantId,
                 );
                 if (
                   this.props.index !==
