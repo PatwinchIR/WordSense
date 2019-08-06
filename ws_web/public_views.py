@@ -28,7 +28,7 @@ pos_map = {
 
 
 def is_valid_worker_id(worker_id):
-    return "ASDFIN" in worker_id
+    return True
 
 
 def is_expired(last_active_time):

@@ -33,8 +33,8 @@ def populate(objs):
 
 
 if __name__ == "__main__":
-    # Eng-NA
-    queryset = Token.objects.filter(collection_id=3).order_by('id')
+    # Eng-UK
+    queryset = Token.objects.filter(collection_id=13).order_by('id')
     status = queryset_foreach(
         queryset,
         populate,
