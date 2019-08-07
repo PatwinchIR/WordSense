@@ -22,7 +22,7 @@ pos_map = {
 }
 
 
-# TODO: 1. add a button on frontend, so when a worker finishes, (s)he needs to click on the finish button to retrieve
+# TODO: 1. add a button on frontend, so when a worker finishes, they need to click on the finish button to retrieve
 # TODO:     redeem code, so he can use this code to MT site to get paid.
 # TODO: 2. check finish logic. update WorkUnit (set as idle, increment times_worked)
 
