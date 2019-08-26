@@ -363,6 +363,7 @@ class Staff extends Component {
             inputUtteranceIndex={this.state.inputUtteranceIndex}
             handleGlossClick={this.handleGlossClick}
             activeWord={this.state.activeWord}
+            tokenIndex={this.state.tokenIndex}
             utteranceIndexForTagStatusChange={
               this.state.utteranceIndexForTagStatusChange
             }

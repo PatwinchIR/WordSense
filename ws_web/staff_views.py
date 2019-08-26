@@ -141,7 +141,20 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             participant=participant_id
         ).values_list('sense_id', flat=True)
         data = list(self.queryset)
-        return Response(data=data, status=status.HTTP_200_OK)
+
+        try:
+            prev_selection_highlight_id = Tags.objects.select_related('token').filter(
+                token__part_of_speech=DerivedTokens.objects.get(id=token_id).part_of_speech,
+                gloss_with_replacement=gloss_with_replacement,
+                participant=participant_id
+            ).latest('id')
+            prev_selection_highlight = Tags.objects.filter(
+                token_id=prev_selection_highlight_id.token_id
+            ).values_list('sense_id', flat=True)
+        except:
+            prev_selection_highlight = []
+
+        return Response(data={"data": data, "highlight": prev_selection_highlight}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         data = request.data

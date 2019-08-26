@@ -2,6 +2,8 @@ from datetime import datetime
 from itertools import zip_longest
 
 from rest_framework import generics, status, permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ws_web.models import DerivedTokens, Tags, WordNet30, Participant, WorkUnit, WorkUnitContent
@@ -25,6 +27,12 @@ pos_map = {
 # TODO: 1. add a button on frontend, so when a worker finishes, they need to click on the finish button to retrieve
 # TODO:     redeem code, so he can use this code to MT site to get paid.
 # TODO: 2. check finish logic. update WorkUnit (set as idle, increment times_worked)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def is_finished(request):
+    return Response(data="htihsihdisi", status=status.HTTP_200_OK)
 
 
 def is_valid_worker_id(worker_id):
@@ -142,14 +150,26 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         token_id = request.query_params['token_id']
         participant_id = Participant.objects.filter(worker_id=worker_id).first().id if request.query_params[
                                      'participant_id'] == "undefined" else request.query_params['participant_id']
-        print("list_tags: ", participant_id)
         self.queryset = Tags.objects.filter(
             gloss_with_replacement=gloss_with_replacement,
             token_id=token_id,
             participant=participant_id
         ).values_list('sense_id', flat=True)
         data = list(self.queryset)
-        return Response(data=data, status=status.HTTP_200_OK)
+
+        try:
+            prev_selection_highlight_id = Tags.objects.select_related('token').filter(
+                token__part_of_speech=DerivedTokens.objects.get(id=token_id).part_of_speech,
+                gloss_with_replacement=gloss_with_replacement,
+                participant=participant_id
+            ).latest('id')
+            prev_selection_highlight = Tags.objects.filter(
+                token_id=prev_selection_highlight_id.token_id
+            ).values_list('sense_id', flat=True)
+        except:
+            prev_selection_highlight = []
+
+        return Response(data={"data": data, "highlight": prev_selection_highlight}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         data = request.data

@@ -22,14 +22,12 @@ class Utterance extends Component {
   componentDidUpdate() {
     if (this.props.index === this.props.currentSlide + CONTEXT_LENGTH) {
       this.props.setDisplayFocus(this.props.utterance, this.props.index);
-    } else {
     }
   }
 
   componentDidMount() {
     if (this.props.index === this.props.currentSlide + CONTEXT_LENGTH) {
       this.props.setDisplayFocus(this.props.utterance, this.props.index);
-    } else {
     }
   }
 

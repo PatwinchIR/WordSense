@@ -35,6 +35,7 @@ class UtteranceDisplay extends Component {
     );
     this.setDisplayFocus = this.setDisplayFocus.bind(this);
     this.handleConfirmation = this.handleConfirmation.bind(this);
+    this.keyHandling = this.keyHandling.bind(this);
   }
 
   processUtterances(rawUtterances) {
@@ -104,6 +105,7 @@ class UtteranceDisplay extends Component {
         }
       }
     });
+    console.log(results);
     return results;
   }
 
@@ -136,16 +138,17 @@ class UtteranceDisplay extends Component {
             );
           }
         })
-        .then(utterances =>
-          this.setState({
-            participantId: utterances.participant_id,
-            workUnitId: utterances.work_unit_id,
-            utterances: this.processUtterances(utterances),
-            loading: false,
-            displayFocusUtterance: [],
-            displayFocusIndex: 0,
-            confirmed: this.props.isPublic
-          })
+        .then(utterances => {
+                this.setState({
+                    participantId: utterances.participant_id,
+                    workUnitId: utterances.work_unit_id,
+                    utterances: this.processUtterances(utterances),
+                    loading: false,
+                    displayFocusUtterance: [],
+                    displayFocusIndex: 0,
+                    confirmed: this.props.isPublic
+                })
+            }
         )
         .catch(error => {
           const toaster = Toaster.create(this.props);
@@ -169,15 +172,66 @@ class UtteranceDisplay extends Component {
     }
   }
 
+  keyHandling(e) {
+    var nextWord = undefined;
+    var currentUtteranceIndex = this.state.displayFocusIndex;
+    var currentTokenIndex = this.props.tokenIndex;
+    if (this.state.utterances[currentUtteranceIndex] !== undefined) {
+      while(nextWord === undefined) {
+        var currentUtterance = this.state.utterances[currentUtteranceIndex];
+
+        if (e.keyCode === 40) { // down arrow key
+          currentTokenIndex++;
+          if (currentTokenIndex > (currentUtterance.id_gloss_pos.length - 1)) {
+            currentUtteranceIndex += currentUtterance.forwardStep;
+            currentUtterance = this.state.utterances[currentUtteranceIndex];
+            currentTokenIndex = 0;
+          }
+        } else if (e.keyCode === 38) { // up arrow key
+          currentTokenIndex--;
+          if (currentTokenIndex < 0) {
+            currentUtteranceIndex -= currentUtterance.backwardStep;
+            currentUtterance = this.state.utterances[currentUtteranceIndex];
+            currentTokenIndex = currentUtterance.id_gloss_pos.length - 1;
+          }
+        }
+
+        if (currentUtterance.id_gloss_pos[currentTokenIndex].tag_status === "TAGGABLE") {
+          nextWord = currentUtterance.id_gloss_pos[currentTokenIndex];
+        }
+      }
+
+      this.props.handleGlossClick(
+        nextWord,
+        currentUtteranceIndex,
+        currentTokenIndex,
+        this.state.workUnitId,
+        this.props.isPublic ? this.state.participantId : this.props.participantId
+      );
+
+      this.setDisplayFocus(
+        this.state.utterances[currentUtteranceIndex],
+        currentUtteranceIndex,
+      );
+      this.setState({inputUtteranceIndex: currentUtteranceIndex - CONTEXT_LENGTH});
+    }
+  }
+
   componentDidMount() {
     if (this.props.isPublic) {
       this.setState({
         loading: true,
         confirmed: true
       });
-      console.log(this.props.workerId);
       this.loadUtterancesForSelectedTranscript(-1);
     }
+
+    window.addEventListener("keydown", this.keyHandling);
+  }
+
+  componentWillUnmount() {
+    // Remove event listener on compenent unmount
+    window.removeEventListener("keydown", this.keyHandling);
   }
 
   componentWillReceiveProps(nextProps) {

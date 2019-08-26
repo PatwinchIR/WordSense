@@ -39,7 +39,8 @@ class SenseDisplay extends Component {
       fingerprint: {},
       participantId: undefined,
       isWrongPosAlertOpen: false,
-      disabledSenseSelection: false
+      disabledSenseSelection: false,
+      highlightSenses: [],
     };
 
     const thisapp = this;
@@ -66,6 +67,7 @@ class SenseDisplay extends Component {
     this.handleWrongPosOpen = this.handleWrongPosOpen.bind(this);
     this.handleWrongPosClose = this.handleWrongPosClose.bind(this);
     this.disableSenseSelection = this.disableSenseSelection.bind(this);
+    this.loadHighlight = this.loadHighlight.bind(this);
   }
 
   async loadSensesExamplesForGloss(token_id, gloss, pos) {
@@ -131,10 +133,11 @@ class SenseDisplay extends Component {
       this.setState({
         senses: senses,
         originalSenses: JSON.parse(JSON.stringify(tags)),
-        selectedSenses: tags,
-        saveStatus: tags.length > 0 ? "SAVED" : "SAVE",
-        saveDisabled: tags.length === 0,
-        disabledSenseSelection: tags[0] === null
+        selectedSenses: tags.data,
+        highlightSenses: tags.highlight,
+        saveStatus: tags.data.length > 0 ? "SAVED" : "SAVE",
+        saveDisabled: tags.data.length === 0,
+        disabledSenseSelection: tags.data[0] === null
       });
     } catch (e) {
       console.log(e);
@@ -202,6 +205,14 @@ class SenseDisplay extends Component {
       return false;
     } else {
       return this.state.selectedSenses.some(item => item === id);
+    }
+  }
+
+  loadHighlight(id) {
+    if (this.state.highlightSenses.length === 0) {
+      return undefined;
+    } else {
+      return this.state.highlightSenses.some(item => item === id) ? "cornsilk" : "white";
     }
   }
 
@@ -386,7 +397,7 @@ class SenseDisplay extends Component {
                     {this.state.senses.map(sense_example => {
                       if (sense_example.id > 0) {
                         return (
-                          <tr>
+                          <tr bgcolor={this.loadHighlight(sense_example.id)}>
                             <td>
                               <Checkbox
                                 style={{

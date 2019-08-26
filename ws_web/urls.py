@@ -27,5 +27,6 @@ urlpatterns = [
     re_path(r'^public/get_tags/$',
             public_views.ListCreateAnnotation.as_view(), name='public-list-tag'),
     re_path(r'^public/save/$', public_views.ListCreateAnnotation.as_view(),
-            name='public-save-tag')
+            name='public-save-tag'),
+    re_path(r'public/get_finish_token/$', public_views.is_finished)
 ]
