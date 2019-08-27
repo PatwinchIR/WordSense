@@ -65,8 +65,6 @@ class Public extends Component {
           this.state.workerId
         }&workUnitId=${
           this.state.workUnitId
-        }&participantId=${
-          this.state.participantId
         }`,
         {
           headers: {
@@ -77,11 +75,15 @@ class Public extends Component {
       )
         .then(res => {
           if (res.ok) {
-            return res.json();
+            return res.json()
+          } else if (res.status === 400) {
+            throw new Error(
+              "Not Valid !"
+            )
           } else {
             throw new Error(
-              res.statusText
-            );
+              "You haven't reached the finish threshold. (> 90%)"
+            )
           }
         })
         .then(finishToken => {

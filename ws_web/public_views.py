@@ -1,3 +1,5 @@
+import random
+import string
 from datetime import datetime
 from itertools import zip_longest
 
@@ -28,11 +30,43 @@ pos_map = {
 # TODO:     redeem code, so he can use this code to MT site to get paid.
 # TODO: 2. check finish logic. update WorkUnit (set as idle, increment times_worked)
 
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def is_finished(request):
-    return Response(data="htihsihdisi", status=status.HTTP_200_OK)
+    worker_id = request.query_params['workerId']
+    work_unit_id = request.query_params['workUnitId']
+
+    validation_queryset = WorkUnit.objects.select_related('participant').filter(
+        participant__worker_id=worker_id,
+        id=work_unit_id
+    )
+    if not validation_queryset:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    utterance_set = WorkUnitContent.objects.filter(
+        work_unit_id=work_unit_id
+    ).values_list('utterance_id', flat=True)
+
+    all_token_set = set(DerivedTokens.objects.filter(
+        utterance_id__in=utterance_set,
+        requires_tags=True
+    ).values_list('id', flat=True))
+    tagged_token_set = set(Tags.objects.select_related('participant').filter(
+        participant__worker_id=worker_id,
+        token_id__in=all_token_set
+    ).values_list('token_id', flat=True))
+
+    print(all_token_set)
+    print(tagged_token_set)
+
+    if len(tagged_token_set) / len(all_token_set) >= 0.9:
+        return Response(data=id_generator(), status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_428_PRECONDITION_REQUIRED)
 
 
 def is_valid_worker_id(worker_id):
@@ -44,6 +78,11 @@ def is_expired(last_active_time):
 
 
 def get_work_unit():
+    # workunit_qryset = WorkUnit.objects.all()
+    # for wku in workunit_qryset:
+    #     wku.status="idle"
+    #     wku.save()
+
     workunit_qryset = WorkUnit.objects.filter(
         status='idle'
     ).order_by('times_worked')

@@ -105,7 +105,6 @@ class UtteranceDisplay extends Component {
         }
       }
     });
-    console.log(results);
     return results;
   }
 
@@ -147,7 +146,7 @@ class UtteranceDisplay extends Component {
                     displayFocusUtterance: [],
                     displayFocusIndex: 0,
                     confirmed: this.props.isPublic
-                })
+                });
             }
         )
         .catch(error => {
