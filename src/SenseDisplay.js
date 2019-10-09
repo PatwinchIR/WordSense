@@ -389,8 +389,7 @@ class SenseDisplay extends Component {
                   <thead>
                     <tr>
                       <th>Senses</th>
-                      <th>Examples</th>
-                      {!this.props.isPublic && <th># of Tags</th>}
+                      <th>Examples</th>                      
                     </tr>
                   </thead>
                   <tbody>
@@ -445,10 +444,7 @@ class SenseDisplay extends Component {
                                 <ButtonNext>{">"}</ButtonNext>
                                 <ButtonLast>{">>"}</ButtonLast>
                               </CarouselProvider>
-                            </td>
-                            {!this.props.isPublic && (
-                              <td>{sense_example.number_of_tags}</td>
-                            )}
+                            </td>                            
                           </tr>
                         );
                       } else
