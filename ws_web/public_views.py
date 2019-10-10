@@ -164,9 +164,10 @@ class ListSenses(generics.ListAPIView):
         word = lemmatizer.lemmatize(request.query_params['gloss'], pos_map[pos])
 
         queryset = WordNet30.objects.filter(
-            word=word,
-            pos=pos_map[pos]
+            lemma_names__icontains="'"+word+"'",
+            pos=pos_map[pos],            
         )
+
         if len(queryset) > 0:
             serializer = SenseModelSerializer(
                 queryset, many=True, context={'token_id': token_id})
