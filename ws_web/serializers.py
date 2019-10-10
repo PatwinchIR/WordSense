@@ -132,7 +132,8 @@ class DerivedTokensSerializer(serializers.ModelSerializer):
             'gloss_with_replacement',
             'part_of_speech',
             'utterance_id',
-            'speaker_role'
+            'speaker_role',
+            'requires_tags'
         )
 
 

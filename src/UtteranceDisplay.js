@@ -54,12 +54,10 @@ class UtteranceDisplay extends Component {
         gloss: item.gloss_with_replacement,
         pos: item.part_of_speech,
         token_id: item.id,
+        requires_tags: item.requires_tags,
         tag_status: tags_set.has(item.id)
           ? "TAGGED"
-          : item.part_of_speech === "n" ||
-            item.part_of_speech === "v" ||
-            item.part_of_speech === "adj" ||
-            item.part_of_speech === "adv"
+          : item.requires_tags
           ? "TAGGABLE"
           : "UNTAGGABLE"
       });
@@ -83,10 +81,7 @@ class UtteranceDisplay extends Component {
         utterances[v].tagable = utterance.id_gloss_pos.reduce(
           (accum, item) =>
             accum ||
-            (item.pos === "n" ||
-              item.pos === "v" ||
-              item.pos === "adj" ||
-              item.pos === "adv"),
+            (item.requires_tags),
           false
         );
         results.push(utterances[v]);
