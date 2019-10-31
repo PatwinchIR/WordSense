@@ -298,8 +298,12 @@ class SenseDisplay extends Component {
   }
 
   handleReset() {
+    var selectedSenses = JSON.parse(JSON.stringify(this.state.originalSenses));
+    if (selectedSenses.data !== undefined) {
+      selectedSenses = selectedSenses.data;
+    }
     this.setState({
-      selectedSenses: JSON.parse(JSON.stringify(this.state.originalSenses)),
+      selectedSenses: selectedSenses,
       saveStatus: this.state.originalSenses.length === 0 ? "SAVE" : "SAVED"
     });
   }
