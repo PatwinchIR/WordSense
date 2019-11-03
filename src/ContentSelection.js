@@ -61,6 +61,8 @@ class ContentSelection extends Component {
           selectedTranscriptID: ""
         });
       }
+    } else if (this.props.isLoggedIn) {
+      this.loadCollection();
     }
   }
 

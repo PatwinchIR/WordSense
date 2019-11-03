@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import "./App.css";
 import ContentSelection from "./ContentSelection";
 import UtteranceDisplay from "./UtteranceDisplay";
@@ -18,7 +18,7 @@ import {
 } from "@blueprintjs/core";
 import classNames from "classnames";
 import Fingerprint2 from "fingerprintjs2";
-import { BASE_URL } from "./Constants";
+import {BASE_URL} from "./Constants";
 import cookie from "react-cookie";
 
 const OVERLAY_CLASS = "docs-overlay-example-transition";
@@ -50,7 +50,7 @@ class Staff extends Component {
     this.state = this.initialState;
 
     const thisapp = this;
-    Fingerprint2.get({}, function(components) {
+    Fingerprint2.get({}, function (components) {
       thisapp.setState({
         fingerprint: components
           .filter(component => {
@@ -128,7 +128,7 @@ class Staff extends Component {
     this.setState({
       prevSelectedTranscriptID: this.state.selectedTranscriptID
     });
-    this.setState({ selectedTranscriptID: selectedTranscriptID });
+    this.setState({selectedTranscriptID: selectedTranscriptID});
   }
 
   handleTranscriptIdInput(event) {
@@ -267,9 +267,17 @@ class Staff extends Component {
       .then(res => {
         if (res.ok) {
           return res.json();
-        } else {
-          throw new Error(res.json());
-        }
+        } else if (res.status === 400) {
+          throw (res.json()).then(err => {
+            if (err.hasOwnProperty("username"))
+              return new Error("A user with that username already exists.");
+            else if (err.hasOwnProperty("email"))
+              return new Error("Please enter a valid email address.");
+            else
+              return new Error("Unable to signup, unknown error.");
+          })
+        } else
+          throw new Error("Unable to signup, unknown error.");
       })
       .then(json => {
         localStorage.setItem("word_sense_token", json.token);
@@ -280,25 +288,29 @@ class Staff extends Component {
         });
       })
       .catch(error => {
-        const toaster = Toaster.create(this.props);
-        toaster.show({
-          intent: Intent.DANGER,
-          message: (
-            <>
-              <em> {error.detail} </em>
-            </>
-          )
-        });
+        error.then(err => {
+            const toaster = Toaster.create(this.props);
+            toaster.show({
+              intent: Intent.DANGER,
+              message: (
+                <>
+                  <em> {err.message} </em>
+                </>
+              )
+            });
+          }
+        )
+
       });
   }
 
   handleLogout() {
     localStorage.removeItem("word_sense_token");
-    this.setState({ isLoggedIn: false, username: "", participantId: null });
+    this.setState({isLoggedIn: false, username: "", participantId: null});
   }
 
   handleTabChange = tabId => {
-    this.setState({ tabId: tabId });
+    this.setState({tabId: tabId});
   };
 
   render() {
@@ -331,12 +343,12 @@ class Staff extends Component {
             <Tab
               id="login"
               title="Log In"
-              panel={<LoginForm handleLogin={this.handleLogin} />}
+              panel={<LoginForm handleLogin={this.handleLogin}/>}
             />
             <Tab
               id="signup"
               title="Sign Up"
-              panel={<SignupForm handleSignup={this.handleSignup} />}
+              panel={<SignupForm handleSignup={this.handleSignup}/>}
             />
           </Tabs>
         </div>
