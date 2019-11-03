@@ -416,8 +416,6 @@ class SenseDisplay extends Component {
                                     ? true
                                     : this.state.selectedSenses.includes(117666)
                                     ? sense_example.id !== 117666
-                                    : this.state.selectedSenses.includes(117667)
-                                    ? sense_example.id !== 117667
                                     : false
                                 }
                               />
