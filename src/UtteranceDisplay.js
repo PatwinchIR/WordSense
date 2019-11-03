@@ -220,12 +220,12 @@ class UtteranceDisplay extends Component {
       this.loadUtterancesForSelectedTranscript(-1);
     }
 
-    window.addEventListener("keydown", this.keyHandling);
+    // window.addEventListener("keydown", this.keyHandling);
   }
 
   componentWillUnmount() {
     // Remove event listener on compenent unmount
-    window.removeEventListener("keydown", this.keyHandling);
+    // window.removeEventListener("keydown", this.keyHandling);
   }
 
   componentWillReceiveProps(nextProps) {
