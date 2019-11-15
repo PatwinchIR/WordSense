@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from datetime import datetime
 
 
 class WordNet30(models.Model):
@@ -18,8 +19,9 @@ class WordNet30(models.Model):
 
 class Participant(models.Model):
     USER_TYPE = (
-        ("mechenical_turk", "Mechanical Turk Workers"),
-        ("in_lab_staff", "In-lab Trained Staff")
+        ("mechanical_turk", "Mechanical Turk Workers"),
+        ("in_lab_staff", "In-lab Trained Staff"),
+        ("subject_pool", "Subject Pool")
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -51,6 +53,10 @@ class WorkUnit(models.Model):
         max_length=20, choices=WORK_UNIT_STATUS, default="idle")
     times_worked = models.PositiveIntegerField(default=0)
     last_active_time = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        self.last_active_time = datetime.now()
+        super(WorkUnit, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'work_unit'

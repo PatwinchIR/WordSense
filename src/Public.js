@@ -31,7 +31,12 @@ class Public extends Component {
       workUnitId: -1,
       participantId: "undefined",
       finishToken: undefined,
-      alertIsOpen: false
+      alertIsOpen: false,
+      userType: this.getParameterByName("userType"),
+      continueOnNextUnit: true,
+      numTagsProvided: -1,
+      totalTagsNeeded: -1,
+      numTagsProvidedNext: -1
     };
 
     this.handleGlossClick = this.handleGlossClick.bind(this);
@@ -40,6 +45,7 @@ class Public extends Component {
     this.getParameterByName = this.getParameterByName.bind(this);
     this.handleFinish = this.handleFinish.bind(this);
     this.handleAlertConfirm = this.handleAlertConfirm.bind(this);
+    this.setUserType = this.setUserType.bind(this);
   }
 
   handleGlossClick(idGlossPos, utteranceIndex, tokenIndex, workUnitId, participantId) {
@@ -54,10 +60,6 @@ class Public extends Component {
   }
 
   async handleFinish() {
-    if (this.state.finishToken !== undefined) {
-      this.setState({alertIsOpen: true});
-      return;
-    }
     try {
       await fetch(
         `${BASE_URL}/api/${PUBLIC_URL
@@ -65,6 +67,8 @@ class Public extends Component {
           this.state.workerId
         }&workUnitId=${
           this.state.workUnitId
+        }&userType=${
+          this.state.userType
         }`,
         {
           headers: {
@@ -86,10 +90,13 @@ class Public extends Component {
             )
           }
         })
-        .then(finishToken => {
+        .then(finishData => {
           this.setState({
-              finishToken: finishToken,
-              alertIsOpen: true
+              finishToken: finishData.finishToken,
+              alertIsOpen: true,
+              continueOnNextUnit: finishData.finishToken === "continue",
+              numTagsProvided: finishData.numTagsProvided,
+              totalTagsNeeded: finishData.totalTagsNeeded
           });
         })
         .catch(error => {
@@ -120,6 +127,7 @@ class Public extends Component {
 
   componentDidMount() {
     this.setWorkerId();
+    this.setUserType();
   }
 
   getParameterByName(name) {
@@ -133,11 +141,20 @@ class Public extends Component {
   }
 
   setWorkerId() {
-    this.setState({workerId: this.getParameterByName("workerId")});
+    this.setState({
+      workerId: this.getParameterByName("workerId")
+    });
+  }
+
+  setUserType() {
+    this.setState({userType: this.getParameterByName("userType")});
   }
 
   handleAlertConfirm() {
-    this.setState({ alertIsOpen: false });
+    this.setState({
+      alertIsOpen: false,
+      numTagsProvidedNext: this.state.numTagsProvided
+    });
   }
 
   render() {
@@ -156,13 +173,18 @@ class Public extends Component {
       <Alert
         icon="endorsed"
         intent={Intent.SUCCESS}
-        confirmButtonText="Okay"
+        confirmButtonText={this.state.continueOnNextUnit ? "Next Transcript" : "Okay"}
         isOpen={this.state.alertIsOpen}
         onConfirm={this.handleAlertConfirm}
       >
+        {!this.state.continueOnNextUnit ?
         <p>
             Your token is : {this.state.finishToken}
         </p>
+          :
+        <p>
+            Good job! Let's work on the next one!
+        </p>}
       </Alert>,
       <div id="container">
         <div id="upper-container">
@@ -177,6 +199,8 @@ class Public extends Component {
               this.state.tokenIndexForTagStatusChange
             }
             workerId={this.state.workerId}
+            userType={this.state.userType}
+            numTagsProvidedNext={this.state.numTagsProvidedNext}
           />
         </div>
         <div id="lower-container">
@@ -189,6 +213,7 @@ class Public extends Component {
             workerId={this.state.workerId}
             workUnitId={this.state.workUnitId}
             participantId={this.state.participantId}
+            userType={this.state.userType}
           />
         </div>
       </div>

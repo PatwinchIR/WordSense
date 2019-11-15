@@ -25,10 +25,18 @@ pos_map = {
     'adv': wn.ADV
 }
 
+USER_TYPES = {
+    "1": "mechanical_turk",
+    "2": "in_lab_staff",
+    "3": "subject_pool"
+}
 
-# TODO: 1. add a button on frontend, so when a worker finishes, they need to click on the finish button to retrieve
-# TODO:     redeem code, so he can use this code to MT site to get paid.
-# TODO: 2. check finish logic. update WorkUnit (set as idle, increment times_worked)
+USER_TYPE_TAGGING_THRESHOLD = {
+    "mechanical_turk": 30,
+    "in_lab_staff": 0, # Not used
+    "subject_pool": 8
+}
+
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -39,6 +47,19 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 def is_finished(request):
     worker_id = request.query_params['workerId']
     work_unit_id = request.query_params['workUnitId']
+    if work_unit_id == "-1":
+        current_active = WorkUnit.objects.select_related('participant').filter(
+            participant__worker_id=worker_id,
+            status="active"
+        )
+        print(current_active)
+        if current_active:
+            work_unit_id = current_active.first().id
+    print(work_unit_id)
+
+    user_type = USER_TYPES.get(request.query_params['userType'], None)
+    if user_type is None:
+        return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
 
     validation_queryset = WorkUnit.objects.select_related('participant').filter(
         participant__worker_id=worker_id,
@@ -64,7 +85,30 @@ def is_finished(request):
     print(tagged_token_set)
 
     if len(tagged_token_set) / len(all_token_set) >= 0.9:
-        return Response(data=id_generator(), status=status.HTTP_200_OK)
+        total_tagged_token_set = set(Tags.objects.select_related('participant').filter(
+            participant__worker_id=worker_id
+        ).values_list('token_id', flat=True))
+
+        finished_workunit = WorkUnit.objects.get(
+            id=work_unit_id
+        )
+        finished_workunit.status="idle"
+        finished_workunit.times_worked = finished_workunit.times_worked + 1
+        finished_workunit.participant_id = None
+        finished_workunit.save()
+
+        if len(total_tagged_token_set) > USER_TYPE_TAGGING_THRESHOLD[user_type]:
+            return Response(data={
+                "finishToken": id_generator(),
+                "numTagsProvided": len(total_tagged_token_set),
+                "totalTagsNeeded": USER_TYPE_TAGGING_THRESHOLD[user_type]
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(data={
+                "finishToken": "continue",
+                "numTagsProvided": len(total_tagged_token_set),
+                "totalTagsNeeded": USER_TYPE_TAGGING_THRESHOLD[user_type]
+            }, status=status.HTTP_200_OK)
 
     return Response(status=status.HTTP_428_PRECONDITION_REQUIRED)
 
@@ -84,11 +128,10 @@ def get_work_unit():
     #     wku.save()
 
     workunit_qryset = WorkUnit.objects.filter(
-        status='idle'
+        status='idle',
+        participant=None
     ).order_by('times_worked')
     chosen_workunit = workunit_qryset.first()
-    chosen_workunit.status = "active"
-    chosen_workunit.save()
 
     utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
     return chosen_workunit.id, DerivedTokens.objects.filter(
@@ -101,9 +144,13 @@ class ListDerivedTokens(generics.ListAPIView):
     tags_set = set()
     work_unit_id = None
     participant_id = None
+    user_type = None
 
     def get_existing_progress(self, participant_id):
-        work_unit = WorkUnit.objects.filter(participant=participant_id).first()
+        work_unit = WorkUnit.objects.filter(
+            participant=participant_id,
+            status="active"
+        ).first()
         if work_unit is not None:
             self.work_unit_id = work_unit.id
             utterance_ids = WorkUnitContent.objects.filter(work_unit=work_unit).values_list('utterance_id',
@@ -122,6 +169,10 @@ class ListDerivedTokens(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         worker_id = request.query_params['workerId']
+        self.user_type = USER_TYPES.get(request.query_params['userType'], None)
+        if self.user_type is None:
+            return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
+
         self.participant_id = request.query_params['participant_id']
         if not is_valid_worker_id(worker_id):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -133,10 +184,13 @@ class ListDerivedTokens(generics.ListAPIView):
                 self.get_existing_progress(self.participant_id)
             else:
                 self.work_unit_id, self.queryset = get_work_unit()
+                print(self.work_unit_id, self.queryset)
+
         else:
             self.get_existing_progress(self.participant_id)
 
         if len(self.queryset) > 0:
+            print("here")
             serializer = DerivedTokensSerializer(
                 self.queryset, many=True, context={'participant_id': None})
             return Response(data={'data': serializer.data,
@@ -167,10 +221,13 @@ class ListSenses(generics.ListAPIView):
             lemma_names__icontains="'"+word+"'",
             pos=pos_map[pos],            
         )
+        print(queryset)
 
         if len(queryset) > 0:
+            print("got senses")
             serializer = SenseModelSerializer(
                 queryset, many=True, context={'token_id': token_id})
+            print(serializer.data)
             return Response(serializer.data)
         else:
             return Response(data=[{'id': -1, 'definition': '', 'examples': [], 'number_of_tags': -1}])
@@ -188,13 +245,18 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
         gloss_with_replacement = request.query_params['gloss_with_replacement']
         token_id = request.query_params['token_id']
-        participant_id = Participant.objects.filter(worker_id=worker_id).first().id if request.query_params[
-                                     'participant_id'] == "undefined" else request.query_params['participant_id']
+        if request.query_params['participant_id'] == "undefined":
+            participant_obj = Participant.objects.filter(worker_id=worker_id).first()
+            participant_id = participant_obj.id if participant_obj is not None else -1
+        else:
+            participant_id = request.query_params['participant_id']
+
         self.queryset = Tags.objects.filter(
             gloss_with_replacement=gloss_with_replacement,
             token_id=token_id,
             participant=participant_id
         ).values_list('sense_id', flat=True)
+
         data = list(self.queryset)
 
         try:
@@ -224,11 +286,15 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         work_unit = WorkUnit.objects.get(id=data.pop('workUnitId'))
         participant_from_worker = Participant.objects.filter(worker_id=worker_id).first()
 
+        user_type = USER_TYPES.get(data.pop("userType"), None)
+        if user_type is None:
+            return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
+
         if "participant" not in data:
             if participant_from_worker is None:
                 participant_serializer = ParticipantSerializer(data={
                     'user': None,
-                    'user_type': 'mechenical_turk',
+                    'user_type': user_type,
                     'browser_display_lang': fingerprint['language'],
                     'browser_user_agent': fingerprint['userAgent'],
                     'browser_platform': fingerprint['platform'],
@@ -249,7 +315,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             work_unit.participant = participant_obj
 
         data['transcript_id'] = work_unit.transcript_id
-        work_unit.last_active_time = datetime.now()
+        work_unit.status = "active"
         work_unit.save()
 
         if data.get('fixed_pos', '') in ('n', 'v', 'adj', 'adv', 'other'):

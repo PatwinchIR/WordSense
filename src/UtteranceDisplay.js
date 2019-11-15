@@ -27,7 +27,8 @@ class UtteranceDisplay extends Component {
       confirmed: false,
       inputUtteranceIndex: 0,
       workerId: "unset",
-      workUnitId: -1
+      workUnitId: -1,
+      userType: undefined
     };
 
     this.loadUtterancesForSelectedTranscript = this.loadUtterancesForSelectedTranscript.bind(
@@ -113,7 +114,7 @@ class UtteranceDisplay extends Component {
           this.props.isPublic ? PUBLIC_URL : ""
         }get_utterances/?transcript_id=${transcriptID}&participant_id=${
           this.props.participantId
-        }&workerId=${this.props.workerId}`,
+        }&workerId=${this.props.workerId}&userType=${this.props.userType}`,
         {
           headers: {
             Authorization: this.props.isPublic
@@ -251,6 +252,9 @@ class UtteranceDisplay extends Component {
         loading: true,
         confirmed: false
       });
+      this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
+    }
+    if (this.props.numTagsProvidedNext !== nextProps.numTagsProvidedNext) {
       this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
     }
     if (
