@@ -31,7 +31,7 @@ def populate(work_unit_id, transcript_id):
         collection_id=3,
         status="idle",
         times_worked=0,
-        last_active_time="2019-11-15 18:14:27.528471-08")
+        last_active_time=None)
 
 if __name__ == "__main__":
     work_unit_id = 0
@@ -56,7 +56,7 @@ if __name__ == "__main__":
                 work_unit_id+=1
                 populate(work_unit_id, transcript_id)
                 counter, tokens_count=0,0
-                
+
             if i >= len(utterances):
                 counter, tokens_count=0,0
         counter, tokens_count=0,0

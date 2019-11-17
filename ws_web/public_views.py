@@ -12,6 +12,7 @@ from ws_web.serializers import DerivedTokensSerializer, TagsSerializer, \
 from nltk.stem import WordNetLemmatizer
 
 from ws_web.utils import *
+import random
 
 lemmatizer = WordNetLemmatizer()
 
@@ -115,23 +116,41 @@ def get_work_unit(participant_id=None):
 
         finished_units = set(WorkUnitContent.objects.filter(
             utterance_id__in=finished_utterances
-        ).values_list("work_unit_id", flat=True))
+        ).values_list("work_unit_id", flat=True))        
+    
+        if len(finished_units) == 0:
+            # don't return anything, make them do one of the shared work units
+            pass
 
-    workunit_qryset = WorkUnit.objects.filter(
-        status='idle',
-        participant=None
-    ).order_by('times_worked').exclude(
-        id__in=finished_units
-    )
-    if len(workunit_qryset) > 0:
-        chosen_workunit = workunit_qryset.first()
+        else:
+            workunit_qryset = WorkUnit.objects.filter(
+                status='idle',
+                participant=None
+            ).order_by('times_worked').exclude(
+                id__in=finished_units
+            )
+            if len(workunit_qryset) > 0:
+                chosen_workunit = workunit_qryset.first()
 
-        utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
-        return chosen_workunit.id, DerivedTokens.objects.filter(
+                utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
+                return chosen_workunit.id, DerivedTokens.objects.filter(
+                    utterance_id__in=utterance_ids
+                ).order_by('id')
+            else:
+                return -1, []
+    
+    # participant_id is none until some tokens have been submitted; we use this to identify a first-time annotator, 
+    # and give them one of the practive work units
+    shared_units = [4752, 4755, 4753, 4760, 4769] #, 4763, 4764, 4770, 4761, 4765, 
+    random_training_id = random.choice(shared_units)
+    print('Random training unit: '+str(random_training_id))
+    chosen_workunit =  WorkUnit.objects.filter(
+                id = random_training_id).first()
+    
+    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
+    return chosen_workunit.id, DerivedTokens.objects.filter(
             utterance_id__in=utterance_ids
         ).order_by('id')
-    else:
-        return -1, []
 
 
 class ListDerivedTokens(generics.ListAPIView):
@@ -307,7 +326,9 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             work_unit.participant = participant_obj
 
         data['transcript_id'] = work_unit.transcript_id
-        work_unit.status = "active"
+        shared_units = [4752, 4755, 4753, 4760, 4769]
+        if work_unit.id not in shared_units: # shared units should not be locked -- can always accept new people
+            work_unit.status = "active"
         work_unit.save()
 
         if data.get('fixed_pos', '') in ('n', 'v', 'adj', 'adv', 'other'):
