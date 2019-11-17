@@ -1,6 +1,3 @@
-import random
-import string
-from datetime import datetime
 from itertools import zip_longest
 
 from rest_framework import generics, status, permissions
@@ -9,37 +6,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ws_web.models import DerivedTokens, Tags, WordNet30, Participant, WorkUnit, WorkUnitContent
-from ws_web.serializers import DerivedTokensSerializer, SenseSerializer, TagsSerializer, \
+from ws_web.serializers import DerivedTokensSerializer, TagsSerializer, \
     ParticipantSerializer, SenseModelSerializer
 
-from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
+from ws_web.utils import *
+
 lemmatizer = WordNetLemmatizer()
-
-TOTAL_UTTERANCES = 10
-pos_map = {
-    'v': wn.VERB,
-    'n': wn.NOUN,
-    'adj': wn.ADJ,
-    'adv': wn.ADV
-}
-
-USER_TYPES = {
-    "1": "mechanical_turk",
-    "2": "in_lab_staff",
-    "3": "subject_pool"
-}
-
-USER_TYPE_TAGGING_THRESHOLD = {
-    "mechanical_turk": 30,
-    "in_lab_staff": 0, # Not used
-    "subject_pool": 8
-}
-
-
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
 
 
 @api_view(['GET'])
@@ -52,14 +26,23 @@ def is_finished(request):
             participant__worker_id=worker_id,
             status="active"
         )
-        print(current_active)
         if current_active:
             work_unit_id = current_active.first().id
-    print(work_unit_id)
 
     user_type = USER_TYPES.get(request.query_params['userType'], None)
     if user_type is None:
         return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+    # In case the user forgot the token
+    previously_tagged_token_set = Tags.objects.select_related('participant').filter(
+        participant__worker_id=worker_id,
+    )
+    if len(previously_tagged_token_set) >= USER_TYPE_TAGGING_THRESHOLD[user_type]:
+        return Response(data={
+            "finishToken": id_generator(worker_id),
+            "numTagsProvided": len(previously_tagged_token_set),
+            "totalTagsNeeded": USER_TYPE_TAGGING_THRESHOLD[user_type]
+        }, status=status.HTTP_200_OK)
 
     validation_queryset = WorkUnit.objects.select_related('participant').filter(
         participant__worker_id=worker_id,
@@ -81,9 +64,6 @@ def is_finished(request):
         token_id__in=all_token_set
     ).values_list('token_id', flat=True))
 
-    print(all_token_set)
-    print(tagged_token_set)
-
     if len(tagged_token_set) / len(all_token_set) >= 0.9:
         total_tagged_token_set = set(Tags.objects.select_related('participant').filter(
             participant__worker_id=worker_id
@@ -97,9 +77,9 @@ def is_finished(request):
         finished_workunit.participant_id = None
         finished_workunit.save()
 
-        if len(total_tagged_token_set) > USER_TYPE_TAGGING_THRESHOLD[user_type]:
+        if len(total_tagged_token_set) >= USER_TYPE_TAGGING_THRESHOLD[user_type]:
             return Response(data={
-                "finishToken": id_generator(),
+                "finishToken": id_generator(worker_id),
                 "numTagsProvided": len(total_tagged_token_set),
                 "totalTagsNeeded": USER_TYPE_TAGGING_THRESHOLD[user_type]
             }, status=status.HTTP_200_OK)
@@ -121,22 +101,37 @@ def is_expired(last_active_time):
     return False
 
 
-def get_work_unit():
+def get_work_unit(participant_id=None):
     # workunit_qryset = WorkUnit.objects.all()
     # for wku in workunit_qryset:
     #     wku.status="idle"
     #     wku.save()
 
+    finished_units = set()
+    if participant_id is not None:
+        finished_utterances = set(Tags.objects.select_related('token').filter(
+            participant=participant_id
+        ).values_list("token__utterance_id", flat=True))
+
+        finished_units = set(WorkUnitContent.objects.filter(
+            utterance_id__in=finished_utterances
+        ).values_list("work_unit_id", flat=True))
+
     workunit_qryset = WorkUnit.objects.filter(
         status='idle',
         participant=None
-    ).order_by('times_worked')
-    chosen_workunit = workunit_qryset.first()
+    ).order_by('times_worked').exclude(
+        id__in=finished_units
+    )
+    if len(workunit_qryset) > 0:
+        chosen_workunit = workunit_qryset.first()
 
-    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
-    return chosen_workunit.id, DerivedTokens.objects.filter(
-        utterance_id__in=utterance_ids
-    ).order_by('id')
+        utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
+        return chosen_workunit.id, DerivedTokens.objects.filter(
+            utterance_id__in=utterance_ids
+        ).order_by('id')
+    else:
+        return -1, []
 
 
 class ListDerivedTokens(generics.ListAPIView):
@@ -165,7 +160,7 @@ class ListDerivedTokens(generics.ListAPIView):
                 token_id__in=token_ids
             ).values_list('token_id', flat=True))
         else:
-            self.work_unit_id, self.queryset = get_work_unit()
+            self.work_unit_id, self.queryset = get_work_unit(participant_id)
 
     def list(self, request, *args, **kwargs):
         worker_id = request.query_params['workerId']
@@ -184,13 +179,11 @@ class ListDerivedTokens(generics.ListAPIView):
                 self.get_existing_progress(self.participant_id)
             else:
                 self.work_unit_id, self.queryset = get_work_unit()
-                print(self.work_unit_id, self.queryset)
 
         else:
             self.get_existing_progress(self.participant_id)
 
         if len(self.queryset) > 0:
-            print("here")
             serializer = DerivedTokensSerializer(
                 self.queryset, many=True, context={'participant_id': None})
             return Response(data={'data': serializer.data,
@@ -198,6 +191,8 @@ class ListDerivedTokens(generics.ListAPIView):
                                   'work_unit_id': self.work_unit_id,
                                   'participant_id': self.participant_id},
                             status=status.HTTP_200_OK)
+        elif self.work_unit_id == -1:
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -215,19 +210,16 @@ class ListSenses(generics.ListAPIView):
 
         pos = request.query_params['pos']
         token_id = request.query_params['token_id']
-        word = lemmatizer.lemmatize(request.query_params['gloss'], pos_map[pos])
+        word = lemmatizer.lemmatize(request.query_params['gloss'], POS_MAP[pos])
 
         queryset = WordNet30.objects.filter(
             lemma_names__icontains="'"+word+"'",
-            pos=pos_map[pos],            
+            pos=POS_MAP[pos],
         )
-        print(queryset)
 
         if len(queryset) > 0:
-            print("got senses")
             serializer = SenseModelSerializer(
                 queryset, many=True, context={'token_id': token_id})
-            print(serializer.data)
             return Response(serializer.data)
         else:
             return Response(data=[{'id': -1, 'definition': '', 'examples': [], 'number_of_tags': -1}])

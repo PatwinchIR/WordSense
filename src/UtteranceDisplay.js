@@ -125,12 +125,16 @@ class UtteranceDisplay extends Component {
         }
       )
         .then(res => {
-          if (res.ok) {
-            return res.json();
+          if (res.status === 200) {
+            return res.json()
+          } else if (res.status === 204) {
+            throw new Error(
+              "You've finished everything !"
+            )
           } else {
             throw new Error(
               res.statusText
-            );
+            )
           }
         })
         .then(utterances => {

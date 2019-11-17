@@ -78,11 +78,15 @@ class Public extends Component {
         }
       )
         .then(res => {
-          if (res.ok) {
+          if (res.status === 200) {
             return res.json()
           } else if (res.status === 400) {
             throw new Error(
               "Not Valid !"
+            )
+          } else if (res.status === 204) {
+            throw new Error(
+              "You've finished everything !"
             )
           } else {
             throw new Error(
@@ -183,7 +187,8 @@ class Public extends Component {
         </p>
           :
         <p>
-            Good job! Let's work on the next one!
+          Good job! {this.state.numTagsProvided}/{this.state.totalTagsNeeded} Tags finished.
+          Let's work on the next one!
         </p>}
       </Alert>,
       <div id="container">
