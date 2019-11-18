@@ -20,9 +20,9 @@ USER_TYPES = {
 }
 
 USER_TYPE_TAGGING_THRESHOLD = {
-    "mechanical_turk": 30,
-    "in_lab_staff": 0, # Not used
-    "subject_pool": 24 * 2 # 24 * 9 in production
+    "mechanical_turk": int(os.environ.get("WORDSENSE_MECHANICAL_TURK_TAGS_THRESHOLD", 30)),
+    "in_lab_staff": int(os.environ.get("WORDSENSE_IN_LAB_STAFF_TAGS_THRESHOLD", 0)), # Not used
+    "subject_pool": int(os.environ.get("WORDSENSE_SUBJECT_POOL_TAGS_THRESHOLD", 24 * 9)) # 24 * 9 in production
 }
 
 # os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
