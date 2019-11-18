@@ -382,6 +382,7 @@ class SenseDisplay extends Component {
                   tokenIndex={this.props.tokenIndex}
                   workerId={this.props.workerId}
                   workUnitId={this.props.workUnitId}
+                  userType={this.props.userType}
                 />
               </div>
             </Overlay>

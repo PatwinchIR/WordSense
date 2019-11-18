@@ -145,6 +145,7 @@ class UtteranceDisplay extends Component {
                     loading: false,
                     displayFocusUtterance: [],
                     displayFocusIndex: 0,
+                    inputUtteranceIndex: 0,
                     confirmed: this.props.isPublic
                 });
             }
@@ -163,6 +164,7 @@ class UtteranceDisplay extends Component {
             loading: false,
             displayFocusUtterance: [],
             displayFocusIndex: 0,
+            inputUtteranceIndex: 0,
             confirmed: false
           });
         });
@@ -259,7 +261,11 @@ class UtteranceDisplay extends Component {
       this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
     }
     if (this.props.numTagsProvidedNext !== nextProps.numTagsProvidedNext) {
-      this.loadUtterancesForSelectedTranscript(nextProps.selectedTranscriptID);
+      this.setState({
+        inputUtteranceIndex: 0,
+        confirmed: false
+      });
+      this.loadUtterancesForSelectedTranscript(-1);
     }
     if (
       (this.props.utteranceIndexForTagStatusChange !==

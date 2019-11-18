@@ -30,21 +30,21 @@ USER_TYPE_TAGGING_THRESHOLD = {
 # os.environ['WORDSENSE_CYPHER_KEY'] = "test"
 
 
-cypher_inventory = eval(os.environ['WORDSENSE_CYPHER_INVENTORY'])
-offset = int(os.environ['WORDSENSE_CYPHER_OFFSET'])
+# cypher_inventory = eval(os.environ['WORDSENSE_CYPHER_INVENTORY'])
+# offset = int(os.environ['WORDSENSE_CYPHER_OFFSET'])
 cypher_key = os.environ['WORDSENSE_CYPHER_KEY']
 
 
-def encode_user_identifier(user_identifier, char_inventory, offset):
-    return (''.join([
-        cypher_inventory[(cypher_inventory.index(x) + offset) %
-                         len(cypher_inventory)] for x in list(user_identifier)]))
-
-
-def decode_user_identifier(encoded_user_identifier, char_inventory, offset):
-    return (''.join([
-        cypher_inventory[(cypher_inventory.index(x) - offset) %
-                         len(cypher_inventory)] for x in list(encoded_user_identifier)]))
+# def encode_user_identifier(user_identifier, char_inventory, offset):
+#     return (''.join([
+#         cypher_inventory[(cypher_inventory.index(x) + offset) %
+#                          len(cypher_inventory)] for x in list(user_identifier)]))
+#
+#
+# def decode_user_identifier(encoded_user_identifier, char_inventory, offset):
+#     return (''.join([
+#         cypher_inventory[(cypher_inventory.index(x) - offset) %
+#                          len(cypher_inventory)] for x in list(encoded_user_identifier)]))
 
 
 def xor_encrypt_string(plaintext, key):
