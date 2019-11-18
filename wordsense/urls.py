@@ -25,5 +25,6 @@ urlpatterns = [
     path('token-auth/', obtain_jwt_token),
     path('staff/', TemplateView.as_view(template_name='index.html')),
     path('about/', TemplateView.as_view(template_name='index.html')),
+    path('public/', TemplateView.as_view(template_name='index.html')),
     path('', TemplateView.as_view(template_name='index.html'))
 ]
