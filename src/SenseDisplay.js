@@ -454,7 +454,9 @@ class SenseDisplay extends Component {
                         return (
                           <label>
                             No senses found for the current token and its part
-                            of speech.
+                            of speech. This may be the case if the Part of Speech
+                            listed in the transcript is incorrect. Click "Wrong Part
+                            of Speech" to correct if so. 
                           </label>
                         );
                     })}
