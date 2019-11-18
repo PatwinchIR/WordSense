@@ -25,9 +25,9 @@ USER_TYPE_TAGGING_THRESHOLD = {
     "subject_pool": 24 * 2 # 24 * 9 in production
 }
 
-os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
-os.environ['WORDSENSE_CYPHER_OFFSET'] = "56"
-os.environ['WORDSENSE_CYPHER_KEY'] = "test"
+# os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
+# os.environ['WORDSENSE_CYPHER_OFFSET'] = "56"
+# os.environ['WORDSENSE_CYPHER_KEY'] = "test"
 
 
 cypher_inventory = eval(os.environ['WORDSENSE_CYPHER_INVENTORY'])
