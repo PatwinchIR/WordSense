@@ -39,6 +39,14 @@ def is_finished(request):
         participant__worker_id=worker_id,
     )
     if len(previously_tagged_token_set) >= USER_TYPE_TAGGING_THRESHOLD[user_type]:
+        if work_unit_id != "-1":
+            finished_workunit = WorkUnit.objects.get(
+                id=work_unit_id
+            )
+            finished_workunit.status = "idle"
+            finished_workunit.times_worked = finished_workunit.times_worked + 1
+            finished_workunit.participant_id = None
+            finished_workunit.save()
         return Response(data={
             "finishToken": id_generator(worker_id),
             "numTagsProvided": len(previously_tagged_token_set),
@@ -102,7 +110,7 @@ def is_expired(last_active_time):
     return False
 
 
-def get_work_unit(participant_id=None):
+def get_work_unit(user_type, participant_id=None):
     # workunit_qryset = WorkUnit.objects.all()
     # for wku in workunit_qryset:
     #     wku.status="idle"
@@ -116,13 +124,20 @@ def get_work_unit(participant_id=None):
 
         finished_units = set(WorkUnitContent.objects.filter(
             utterance_id__in=finished_utterances
-        ).values_list("work_unit_id", flat=True))        
+        ).values_list("work_unit_id", flat=True))
     
         if len(finished_units) == 0:
             # don't return anything, make them do one of the shared work units
             pass
 
         else:
+            # if a worker has finished quota
+            previously_tagged_token_set = Tags.objects.select_related('participant').filter(
+                participant_id=participant_id,
+            )
+            if len(previously_tagged_token_set) >= USER_TYPE_TAGGING_THRESHOLD[user_type]:
+                return -1, []
+
             workunit_qryset = WorkUnit.objects.filter(
                 status='idle',
                 participant=None
@@ -179,7 +194,7 @@ class ListDerivedTokens(generics.ListAPIView):
                 token_id__in=token_ids
             ).values_list('token_id', flat=True))
         else:
-            self.work_unit_id, self.queryset = get_work_unit(participant_id)
+            self.work_unit_id, self.queryset = get_work_unit(self.user_type, participant_id)
 
     def list(self, request, *args, **kwargs):
         worker_id = request.query_params['workerId']
@@ -197,7 +212,7 @@ class ListDerivedTokens(generics.ListAPIView):
                 self.participant_id = participant_qryset.first().id
                 self.get_existing_progress(self.participant_id)
             else:
-                self.work_unit_id, self.queryset = get_work_unit()
+                self.work_unit_id, self.queryset = get_work_unit(self.user_type)
 
         else:
             self.get_existing_progress(self.participant_id)

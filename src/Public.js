@@ -1,17 +1,14 @@
 import React, { Component } from "react";
 import "./App.css";
 import UtteranceDisplay from "./UtteranceDisplay";
-import { Link } from "react-router-dom";
 import SenseDisplay from "./SenseDisplay";
 import {
   Intent,
   Toaster,
-  Checkbox,
-  Text,
   Button,
-  HTMLTable,
-  Overlay,
-  Alert
+  Alert,
+  H1,
+  H2
 } from "@blueprintjs/core";
 import {BASE_URL, PUBLIC_URL} from "./Constants";
 import cookie from "react-cookie";
@@ -35,7 +32,7 @@ class Public extends Component {
       userType: this.getParameterByName("userType"),
       continueOnNextUnit: true,
       numTagsProvided: -1,
-      totalTagsNeeded: -1,
+      totalTagsNeeded: 0,
       numTagsProvidedNext: -1
     };
 
@@ -157,7 +154,7 @@ class Public extends Component {
   handleAlertConfirm() {
     this.setState({
       alertIsOpen: false,
-      numTagsProvidedNext: this.state.numTagsProvided
+      numTagsProvidedNext: this.state.numTagsProvided,
     });
   }
 
@@ -172,7 +169,7 @@ class Public extends Component {
           text={"FINISHED ? "}
           onClick={this.handleFinish}
         />
-        <Link to="/">Home</Link>
+        {/*<Link to="/">Home</Link>*/}
       </div>,
       <Alert
         icon="endorsed"
@@ -192,7 +189,8 @@ class Public extends Component {
         </p>}
       </Alert>,
       <div id="container">
-        <div id="upper-container">
+        {this.state.numTagsProvided < this.state.totalTagsNeeded ?
+        [<div id="upper-container">
           <UtteranceDisplay
             isPublic={true}
             handleGlossClick={this.handleGlossClick}
@@ -207,7 +205,7 @@ class Public extends Component {
             userType={this.state.userType}
             numTagsProvidedNext={this.state.numTagsProvidedNext}
           />
-        </div>
+        </div>,
         <div id="lower-container">
           <SenseDisplay
             isPublic={true}
@@ -221,6 +219,16 @@ class Public extends Component {
             userType={this.state.userType}
           />
         </div>
+          ] :
+          <div id="finish-sign">
+              <H1>
+                That’s the end! Thanks for participating.
+              </H1>
+              <H2>
+                Please complete this <a href="https://princetonsurvey.az1.qualtrics.com/jfe/form/SV_8idXVGvlXcQi51j">survey</a>.
+              </H2>
+          </div>
+        }
       </div>
     ];
   }

@@ -22,7 +22,7 @@ USER_TYPES = {
 USER_TYPE_TAGGING_THRESHOLD = {
     "mechanical_turk": 30,
     "in_lab_staff": 0, # Not used
-    "subject_pool": 24*2 # 24 * 9 in production
+    "subject_pool": 24 * 2 # 24 * 9 in production
 }
 
 os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
@@ -33,10 +33,6 @@ os.environ['WORDSENSE_CYPHER_KEY'] = "test"
 cypher_inventory = eval(os.environ['WORDSENSE_CYPHER_INVENTORY'])
 offset = int(os.environ['WORDSENSE_CYPHER_OFFSET'])
 cypher_key = os.environ['WORDSENSE_CYPHER_KEY']
-#
-#
-# print(cypher_inventory)
-# print(offset)
 
 
 def encode_user_identifier(user_identifier, char_inventory, offset):
