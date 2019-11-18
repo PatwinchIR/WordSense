@@ -78,7 +78,7 @@ class SenseDisplay extends Component {
       const sensesRes = await fetch(
         `${BASE_URL}/api/${
           this.props.isPublic ? PUBLIC_URL : ""
-        }get_senses/?gloss=${gloss}&pos=${pos}&token_id=${token_id}&workerId=${this.props.workerId}`,
+        }get_senses/?gloss=${gloss}&pos=${pos}&token_id=${token_id}&workerId=${this.props.workerId}&userType=${this.props.userType}`,
         {
           headers: {
             Authorization: this.props.isPublic
@@ -91,7 +91,7 @@ class SenseDisplay extends Component {
       const tagsRes = await fetch(
         `${BASE_URL}/api/${
           this.props.isPublic ? PUBLIC_URL : ""
-        }get_tags/?gloss_with_replacement=${gloss}&token_id=${token_id}&participant_id=${finalParticipantId}&workerId=${this.props.workerId}`,
+        }get_tags/?gloss_with_replacement=${gloss}&token_id=${token_id}&participant_id=${finalParticipantId}&workerId=${this.props.workerId}&userType=${this.props.userType}`,
         {
           headers: {
             Authorization: this.props.isPublic
@@ -238,7 +238,8 @@ class SenseDisplay extends Component {
           : this.props.participantId,
         fingerprint: this.state.fingerprint,
         workerId: this.props.workerId,
-        workUnitId: this.props.workUnitId
+        workUnitId: this.props.workUnitId,
+        userType: this.props.userType
       })
     })
       .then(response => {
@@ -453,7 +454,9 @@ class SenseDisplay extends Component {
                         return (
                           <label>
                             No senses found for the current token and its part
-                            of speech.
+                            of speech. This may be the case if the Part of Speech
+                            listed in the transcript is incorrect. Click "Wrong Part
+                            of Speech" to correct if so. 
                           </label>
                         );
                     })}

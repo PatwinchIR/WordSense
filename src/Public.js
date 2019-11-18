@@ -1,17 +1,14 @@
 import React, { Component } from "react";
 import "./App.css";
 import UtteranceDisplay from "./UtteranceDisplay";
-import { Link } from "react-router-dom";
 import SenseDisplay from "./SenseDisplay";
 import {
   Intent,
   Toaster,
-  Checkbox,
-  Text,
   Button,
-  HTMLTable,
-  Overlay,
-  Alert
+  Alert,
+  H1,
+  H2
 } from "@blueprintjs/core";
 import {BASE_URL, PUBLIC_URL} from "./Constants";
 import cookie from "react-cookie";
@@ -31,7 +28,12 @@ class Public extends Component {
       workUnitId: -1,
       participantId: "undefined",
       finishToken: undefined,
-      alertIsOpen: false
+      alertIsOpen: false,
+      userType: this.getParameterByName("userType"),
+      continueOnNextUnit: true,
+      numTagsProvided: -1,
+      totalTagsNeeded: 0,
+      numTagsProvidedNext: -1
     };
 
     this.handleGlossClick = this.handleGlossClick.bind(this);
@@ -40,6 +42,7 @@ class Public extends Component {
     this.getParameterByName = this.getParameterByName.bind(this);
     this.handleFinish = this.handleFinish.bind(this);
     this.handleAlertConfirm = this.handleAlertConfirm.bind(this);
+    this.setUserType = this.setUserType.bind(this);
   }
 
   handleGlossClick(idGlossPos, utteranceIndex, tokenIndex, workUnitId, participantId) {
@@ -54,10 +57,6 @@ class Public extends Component {
   }
 
   async handleFinish() {
-    if (this.state.finishToken !== undefined) {
-      this.setState({alertIsOpen: true});
-      return;
-    }
     try {
       await fetch(
         `${BASE_URL}/api/${PUBLIC_URL
@@ -65,6 +64,8 @@ class Public extends Component {
           this.state.workerId
         }&workUnitId=${
           this.state.workUnitId
+        }&userType=${
+          this.state.userType
         }`,
         {
           headers: {
@@ -74,11 +75,15 @@ class Public extends Component {
         }
       )
         .then(res => {
-          if (res.ok) {
+          if (res.status === 200) {
             return res.json()
           } else if (res.status === 400) {
             throw new Error(
               "Not Valid !"
+            )
+          } else if (res.status === 204) {
+            throw new Error(
+              "You've finished everything !"
             )
           } else {
             throw new Error(
@@ -86,10 +91,13 @@ class Public extends Component {
             )
           }
         })
-        .then(finishToken => {
+        .then(finishData => {
           this.setState({
-              finishToken: finishToken,
-              alertIsOpen: true
+              finishToken: finishData.finishToken,
+              alertIsOpen: true,
+              continueOnNextUnit: finishData.finishToken === "continue",
+              numTagsProvided: finishData.numTagsProvided,
+              totalTagsNeeded: finishData.totalTagsNeeded
           });
         })
         .catch(error => {
@@ -120,6 +128,7 @@ class Public extends Component {
 
   componentDidMount() {
     this.setWorkerId();
+    this.setUserType();
   }
 
   getParameterByName(name) {
@@ -133,11 +142,20 @@ class Public extends Component {
   }
 
   setWorkerId() {
-    this.setState({workerId: this.getParameterByName("workerId")});
+    this.setState({
+      workerId: this.getParameterByName("workerId")
+    });
+  }
+
+  setUserType() {
+    this.setState({userType: this.getParameterByName("userType")});
   }
 
   handleAlertConfirm() {
-    this.setState({ alertIsOpen: false });
+    this.setState({
+      alertIsOpen: false,
+      numTagsProvidedNext: this.state.numTagsProvided,
+    });
   }
 
   render() {
@@ -151,21 +169,28 @@ class Public extends Component {
           text={"FINISHED ? "}
           onClick={this.handleFinish}
         />
-        <Link to="/">Home</Link>
+        {/*<Link to="/">Home</Link>*/}
       </div>,
       <Alert
         icon="endorsed"
         intent={Intent.SUCCESS}
-        confirmButtonText="Okay"
+        confirmButtonText={this.state.continueOnNextUnit ? "Next Transcript" : "Okay"}
         isOpen={this.state.alertIsOpen}
         onConfirm={this.handleAlertConfirm}
       >
+        {!this.state.continueOnNextUnit ?
         <p>
             Your token is : {this.state.finishToken}
         </p>
+          :
+        <p>
+          Good job! {this.state.numTagsProvided}/{this.state.totalTagsNeeded} Tags finished.
+          Let's work on the next one!
+        </p>}
       </Alert>,
       <div id="container">
-        <div id="upper-container">
+        {this.state.numTagsProvided < this.state.totalTagsNeeded ?
+        [<div id="upper-container">
           <UtteranceDisplay
             isPublic={true}
             handleGlossClick={this.handleGlossClick}
@@ -177,8 +202,10 @@ class Public extends Component {
               this.state.tokenIndexForTagStatusChange
             }
             workerId={this.state.workerId}
+            userType={this.state.userType}
+            numTagsProvidedNext={this.state.numTagsProvidedNext}
           />
-        </div>
+        </div>,
         <div id="lower-container">
           <SenseDisplay
             isPublic={true}
@@ -189,8 +216,19 @@ class Public extends Component {
             workerId={this.state.workerId}
             workUnitId={this.state.workUnitId}
             participantId={this.state.participantId}
+            userType={this.state.userType}
           />
         </div>
+          ] :
+          <div id="finish-sign">
+              <H1>
+                That’s the end! Thanks for participating.
+              </H1>
+              <H2>
+                Please complete this <a href="https://princetonsurvey.az1.qualtrics.com/jfe/form/SV_8idXVGvlXcQi51j">survey</a>.
+              </H2>
+          </div>
+        }
       </div>
     ];
   }
