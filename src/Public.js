@@ -180,7 +180,9 @@ class Public extends Component {
       >
         {!this.state.continueOnNextUnit ?
         <p>
-            Your token is : {this.state.finishToken}
+            Here is your completion code: {this.state.finishToken}
+            <br/>
+            Please copy and paste it in this <a href="https://princetonsurvey.az1.qualtrics.com/jfe/form/SV_8idXVGvlXcQi51j">SURVEY</a>.
         </p>
           :
         <p>
@@ -225,7 +227,7 @@ class Public extends Component {
                 That’s the end! Thanks for participating.
               </H1>
               <H2>
-                Please complete this <a href="https://princetonsurvey.az1.qualtrics.com/jfe/form/SV_8idXVGvlXcQi51j">survey</a>.
+                Please complete this <a href="https://princetonsurvey.az1.qualtrics.com/jfe/form/SV_8idXVGvlXcQi51j">SURVEY</a> with completion code: {this.state.finishToken}.
               </H2>
           </div>
         }
