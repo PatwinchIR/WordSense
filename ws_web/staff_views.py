@@ -144,13 +144,14 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
         data = list(self.queryset)
 
         try:
-            prev_selection_highlight_id = Tags.objects.select_related('token').filter(
+            prev_selection_highlight_entry = Tags.objects.select_related('token').filter(
                 token__part_of_speech=DerivedTokens.objects.get(id=token_id).part_of_speech,
                 gloss_with_replacement=gloss_with_replacement,
                 participant=participant_id
             ).latest('id')
             prev_selection_highlight = Tags.objects.filter(
-                token_id=prev_selection_highlight_id.token_id
+                token_id=prev_selection_highlight_entry.token_id,
+                participant=participant_id
             ).values_list('sense_id', flat=True)
         except:
             prev_selection_highlight = []
