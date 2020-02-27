@@ -5,9 +5,9 @@ A web app that allows annotators to annotate words with its meanings for data co
 
 For first set up, make a virtualenv in the project root and install the dependencies in `requirements.txt`:
 
-`virtualenv -p <path to appropriate python> .`
-`source bin/activate`
-`pip install -r requirements.txt`
+`virtualenv -p <path to appropriate python>`    
+`source bin/activate`  
+`pip install -r requirements.txt`  
 
 For working on the app thereafter, you will just run:
 
