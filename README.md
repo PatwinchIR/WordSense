@@ -19,21 +19,15 @@ To get the frontend dependencies run `yarn install` in the project root (may nee
 
 # Copy Production Data to Local Postgres 
 
-Get a postgres server running on your machine (e.g. postgres.app for OS X), and make a new database called wordsense.
+Get a postgres server *version 10 or later* running on your machine (e.g. postgres.app for OS X), and make a new database called wordsense.
 
-Initialize the schema by running the migrations:
+Instead of migrating, we just use a complete dump from the production server with pg_dump, and restore it with pg_restore
 
-`python manage.py migrate ws_web` 
-
-Note the use of the app name; without this, odd things can happen. 
-
-Then get a dump from Heroku or ask someone with access. This dump should be made with the `--data-only` flag because the schema will be set by Django.
-
-`pg_dump --data-only postgres://<pg_user>:<pg_password>@<aws_host>:<port>/wordsense > wordsense_dump.sql`
+`pg_dump postgres://<pg_user>:<pg_password>@<aws_host>:<port>/wordsense -Ft > wordsense_dump.tar`
 
 Then load the data dump into the database:
 
-`psql -U postgres -p <password> wordsense < wordsense_dump.sql`
+`pg_restore -U postgres -p <password> -d wordsense wordsense_dump.tar`
 
 # Start Django
 
@@ -44,6 +38,10 @@ In the virtual environment above, start Django with the runserver management com
 Backend logging will continue in that terminal session
 
 # Start Frontend
+
+For running locally, make sure that the following is commented in in `src/constants.js` so that the frontend hits the appropriate port for the backend:
+
+`export const BASE_URL = “http://localhost:5000”;`
 
 To start the frontend, open another terminal and do:
 
