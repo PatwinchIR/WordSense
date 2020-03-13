@@ -15,6 +15,8 @@ from ws_web.serializers import CollectionSerializer, CorpusSerializer, Transcrip
 from nltk.corpus import wordnet as wn
 from nltk.stem import WordNetLemmatizer
 
+import json
+
 lemmatizer = WordNetLemmatizer()
 pos_map = {
     'v': wn.VERB,
@@ -217,6 +219,35 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             )
             serializer = TagsSerializer(data=data_to_save, many=True)
             if serializer.is_valid():
+
+                # Test to make sure that the sense IDs are reasonable
+                # Especially that they are related to the gloss_with_replacement word                
+                # get the pos so we can lemmatize
+                queryset = DerivedTokens.objects.filter(
+                    id=data['token']).values('part_of_speech')
+                pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
+                
+                # lemmatize
+                lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
+                     pos_map[pos])
+                print('Lemmatized gloss:')
+                print(lemmatized_gloss_with_replacement)
+
+                queryset = WordNet30.objects.filter(
+                    lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
+                ).values('id')           
+                ids_for_wn_senses = [sense['id'] for sense in queryset]
+
+                for sense_id_to_be_saved in sense_ids_to_be_saved:
+                    if sense_id_to_be_saved not in ids_for_wn_senses:
+                        print('sense_id_to_be_saved')
+                        print(sense_id_to_be_saved)
+                        print('ids_for_wn_senses')
+                        print(ids_for_wn_senses)
+                        return Response(data=serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+                    else:
+                        print('gloss_with_replacement found in relevant WN entries')
+
                 serializer.save()
                 return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
             else:
