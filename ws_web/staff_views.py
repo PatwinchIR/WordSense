@@ -120,9 +120,9 @@ class ListSenses(generics.ListAPIView):
 
         queryset = WordNet30.objects.filter(
             lemma_names__icontains="'"+word+"'",
-            pos=pos_map[pos],            
-        )           
-    
+            pos=pos_map[pos],
+        )
+
         if len(queryset) > 0:
             serializer = SenseModelSerializer(
                 queryset, many=True, context={'token_id': token_id})
@@ -221,12 +221,12 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             if serializer.is_valid():
 
                 # Test to make sure that the sense IDs are reasonable
-                # Especially that they are related to the gloss_with_replacement word                
+                # Especially that they are related to the gloss_with_replacement word
                 # get the pos so we can lemmatize
                 queryset = DerivedTokens.objects.filter(
                     id=data['token']).values('part_of_speech')
                 pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
-                
+
                 # lemmatize
                 lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
                      pos_map[pos])
@@ -235,8 +235,9 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
                 queryset = WordNet30.objects.filter(
                     lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
-                ).values('id')           
-                ids_for_wn_senses = [sense['id'] for sense in queryset]
+                    pos=pos_map[pos],
+                ).values('id')
+                ids_for_wn_senses = [sense['id'] for sense in queryset] + [117667, 117666]
 
                 for sense_id_to_be_saved in sense_ids_to_be_saved:
                     if sense_id_to_be_saved not in ids_for_wn_senses:
