@@ -162,6 +162,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         data = request.data
+        print(data)
         if data.get('fixed_pos', '') in ('n', 'v', 'adj', 'adv', 'other'):
             qryset = Tags.objects.filter(
                 gloss_with_replacement=data['gloss_with_replacement'],
@@ -229,9 +230,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
                 # lemmatize
                 lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
-                     pos_map[pos])
-                print('Lemmatized gloss:')
-                print(lemmatized_gloss_with_replacement)
+                     pos_map[pos])                
 
                 queryset = WordNet30.objects.filter(
                     lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
@@ -241,13 +240,10 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
 
                 for sense_id_to_be_saved in sense_ids_to_be_saved:
                     if sense_id_to_be_saved not in ids_for_wn_senses:
-                        print('sense_id_to_be_saved')
-                        print(sense_id_to_be_saved)
-                        print('ids_for_wn_senses')
-                        print(ids_for_wn_senses)
-                        return Response(data=serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+                        print('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+                        raise ValueError('Sense mismatch detected')
                     else:
-                        print('gloss_with_replacement found in relevant WN entries')
+                        print('No sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
 
                 serializer.save()
                 return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
