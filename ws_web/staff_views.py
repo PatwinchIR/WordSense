@@ -17,6 +17,8 @@ from nltk.stem import WordNetLemmatizer
 
 import json
 
+from sentry_sdk import capture_exception
+
 lemmatizer = WordNetLemmatizer()
 pos_map = {
     'v': wn.VERB,
@@ -224,26 +226,29 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 # Test to make sure that the sense IDs are reasonable
                 # Especially that they are related to the gloss_with_replacement word
                 # get the pos so we can lemmatize
-                queryset = DerivedTokens.objects.filter(
-                    id=data['token']).values('part_of_speech')
-                pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
+                try:
+                    queryset = DerivedTokens.objects.filter(
+                        id=data['token']).values('part_of_speech')
+                    pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
 
-                # lemmatize
-                lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
-                     pos_map[pos])                
+                    # lemmatize
+                    lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
+                         pos_map[pos])                
 
-                queryset = WordNet30.objects.filter(
-                    lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
-                    pos=pos_map[pos],
-                ).values('id')
-                ids_for_wn_senses = [sense['id'] for sense in queryset] + [117667, 117666]
+                    queryset = WordNet30.objects.filter(
+                        lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
+                        pos=pos_map[pos],
+                    ).values('id')
+                    ids_for_wn_senses = [sense['id'] for sense in queryset] + [117667, 117666]
 
-                for sense_id_to_be_saved in sense_ids_to_be_saved:
-                    if sense_id_to_be_saved not in ids_for_wn_senses:
-                        print('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
-                        raise ValueError('Sense mismatch detected')
-                    else:
-                        print('No sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+                    for sense_id_to_be_saved in sense_ids_to_be_saved:
+                        if sense_id_to_be_saved not in ids_for_wn_senses:
+                            print('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+                            raise ValueError('Sense mismatch detected')
+                        else:                            
+                            print('No sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+                except Exception as e:
+                    capture_exception(e)                            
 
                 serializer.save()
                 return Response(data={"participant_id": ""}, status=status.HTTP_202_ACCEPTED)
