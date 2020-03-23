@@ -26,7 +26,7 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY'] if os.environ.get(
     'WORDSENSE_ENV') == 'prod' else "a key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['lcd-wordsense.herokuapp.com', '127.0.0.1']
 
@@ -104,7 +104,7 @@ WSGI_APPLICATION = 'wordsense.wsgi.application'
 DATABASES = {
     'default': django_heroku.dj_database_url.config() if os.environ.get("WORDSENSE_ENV") == 'prod' else {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'wordsense2',
+        'NAME': 'wordsense',
         'USER': 'postgres',
         'PASSWORD': ''
     },
