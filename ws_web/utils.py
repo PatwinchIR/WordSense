@@ -16,13 +16,15 @@ POS_MAP = {
 USER_TYPES = {
     "1": "mechanical_turk",
     "2": "in_lab_staff",
-    "3": "subject_pool"
+    "3": "subject_pool",
+    "4": "berkeley_ra_pool"
 }
 
 USER_TYPE_TAGGING_THRESHOLD = {
     "mechanical_turk": int(os.environ.get("WORDSENSE_MECHANICAL_TURK_TAGS_THRESHOLD", 30)),
     "in_lab_staff": int(os.environ.get("WORDSENSE_IN_LAB_STAFF_TAGS_THRESHOLD", 0)), # Not used
-    "subject_pool": int(os.environ.get("WORDSENSE_SUBJECT_POOL_TAGS_THRESHOLD", 24 * 9)) # 24 * 9 in production
+    "subject_pool": int(os.environ.get("WORDSENSE_SUBJECT_POOL_TAGS_THRESHOLD", 24 * 9)), # 24 * 9 in production
+    "berkeley_ra_pool": int(os.environ.get('WORDSENSE_RA_POOL_TAGS_THRESHOLD',1000000))
 }
 
 # os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
