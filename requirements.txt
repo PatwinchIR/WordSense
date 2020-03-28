@@ -11,7 +11,7 @@ gunicorn==19.9.0
 kiwisolver==1.1.0
 matplotlib==3.1.1
 mysqlclient==1.4.2.post1
-nltk==3.4
+nltk==3.4.5
 numpy==1.17.2
 pandas==0.25.0
 psycopg2==2.7.7
