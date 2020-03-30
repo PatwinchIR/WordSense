@@ -164,10 +164,13 @@ def get_work_unit(user_type, participant_id=None):
     chosen_workunit =  WorkUnit.objects.filter(
                 id = random_training_id).first()
     
-    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
-    return chosen_workunit.id, DerivedTokens.objects.filter(
+    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)    
+    
+    return_tokens = DerivedTokens.objects.filter(
             utterance_id__in=utterance_ids
         ).order_by('id')
+
+    return chosen_workunit.id, return_tokens
 
 
 class ListDerivedTokens(generics.ListAPIView):
@@ -213,8 +216,8 @@ class ListDerivedTokens(generics.ListAPIView):
             if len(participant_qryset) > 0:
                 self.participant_id = participant_qryset.first().id
                 self.get_existing_progress(self.participant_id)
-            else:
-                self.work_unit_id, self.queryset = get_work_unit(self.user_type)
+            else:                
+                self.work_unit_id, self.queryset = get_work_unit(self.user_type)                
 
         else:
             self.get_existing_progress(self.participant_id)
@@ -319,8 +322,9 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
 
         if "participant" not in data:
-            if participant_from_worker is None:
-                participant_serializer = ParticipantSerializer(data={
+            if participant_from_worker is None:                
+                print('participant_from_worker is None')
+                participant_data={
                     'user': None,
                     'user_type': user_type,
                     'browser_display_lang': fingerprint['language'],
@@ -328,17 +332,24 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                     'browser_platform': fingerprint['platform'],
                     'ip': x_forwarded_for if x_forwarded_for else request.META.get('REMOTE_ADDR'),
                     'worker_id': worker_id
-                })
+                }
+                print(data)
+                participant_serializer = ParticipantSerializer(data=participant_data)
                 if participant_serializer.is_valid():
+                    print('Serializer is valid')
                     new_participant = participant_serializer.save()
                     data['participant'] = new_participant.id
-
                     work_unit.participant = new_participant
+                else:
+                    print('Error with the serializer')
+                    print(participant_serializer.errors)  
             else:
+                print('participant_from_worker is not None')
                 data['participant'] = participant_from_worker.id
                 work_unit.participant = participant_from_worker
 
         elif work_unit.participant is None:
+            print('work_unit.participant is None')
             participant_obj = Participant.objects.get(id=data['participant'])
             work_unit.participant = participant_obj
 
