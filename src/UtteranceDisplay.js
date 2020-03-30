@@ -36,7 +36,7 @@ class UtteranceDisplay extends Component {
     );
     this.setDisplayFocus = this.setDisplayFocus.bind(this);
     this.handleConfirmation = this.handleConfirmation.bind(this);
-    this.keyHandling = this.keyHandling.bind(this);
+    //this.keyHandling = this.keyHandling.bind(this);
   }
 
   processUtterances(rawUtterances) {
@@ -227,12 +227,12 @@ class UtteranceDisplay extends Component {
       this.loadUtterancesForSelectedTranscript(-1);
     }
 
-    window.addEventListener("keydown", this.keyHandling);
+    //window.addEventListener("keydown", this.keyHandling);
   }
 
   componentWillUnmount() {
     // Remove event listener on compenent unmount
-    window.removeEventListener("keydown", this.keyHandling);
+    //window.removeEventListener("keydown", this.keyHandling);
   }
 
   componentWillReceiveProps(nextProps) {

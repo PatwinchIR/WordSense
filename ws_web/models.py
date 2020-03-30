@@ -21,7 +21,9 @@ class Participant(models.Model):
     USER_TYPE = (
         ("mechanical_turk", "Mechanical Turk Workers"),
         ("in_lab_staff", "In-lab Trained Staff"),
-        ("subject_pool", "Subject Pool")
+        ("subject_pool", "Subject Pool"),
+        ("berkeley_ra_pool", "Berkely RAs"),
+
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
