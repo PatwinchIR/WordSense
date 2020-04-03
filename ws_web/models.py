@@ -101,6 +101,11 @@ class Tags(models.Model):
     fixed_pos = models.CharField(
         max_length=255, blank=True, null=True)
     participant = models.ForeignKey('Participant', on_delete=models.PROTECT)
+    timestamp = models.DateTimeField(null=True)
+
+    def save(self, *args, **kwargs):
+        self.timestamp = datetime.now()
+        super(Tags, self).save(*args, **kwargs)
 
     class Meta:
         db_table = 'tags'
