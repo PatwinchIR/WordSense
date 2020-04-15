@@ -23,6 +23,7 @@ class Participant(models.Model):
         ("in_lab_staff", "In-lab Trained Staff"),
         ("subject_pool", "Subject Pool"),
         ("berkeley_ra_pool", "Berkely RAs"),
+        ("berkeley_rpp", "Berkeley RPP"),
 
     )
 
