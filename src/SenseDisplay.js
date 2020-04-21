@@ -171,7 +171,8 @@ class SenseDisplay extends Component {
     ) {
       this.setState({
         isWrongPosAlertOpen: false,
-        disabledSenseSelection: false
+        disabledSenseSelection: false,
+        selectedSenses: []
       });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
@@ -395,7 +396,7 @@ class SenseDisplay extends Component {
                   <thead>
                     <tr>
                       <th>Senses</th>
-                      <th>Examples</th>                      
+                      <th>Examples</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -448,7 +449,7 @@ class SenseDisplay extends Component {
                                 <ButtonNext>{">"}</ButtonNext>
                                 <ButtonLast>{">>"}</ButtonLast>
                               </CarouselProvider>
-                            </td>                            
+                            </td>
                           </tr>
                         );
                       } else
@@ -457,7 +458,7 @@ class SenseDisplay extends Component {
                             No senses found for the current token and its part
                             of speech. This may be the case if the Part of Speech
                             listed in the transcript is incorrect. Click "Wrong Part
-                            of Speech" to correct if so. 
+                            of Speech" to correct if so.
                           </label>
                         );
                     })}
