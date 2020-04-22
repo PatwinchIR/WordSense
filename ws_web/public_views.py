@@ -4,6 +4,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db.models import Q
 
 from ws_web.models import DerivedTokens, Tags, WordNet30, Participant, WorkUnit, WorkUnitContent
 from ws_web.serializers import DerivedTokensSerializer, TagsSerializer, \
@@ -14,10 +15,15 @@ from nltk.stem import WordNetLemmatizer
 from ws_web.utils import *
 import random
 
-from sentry_sdk import capture_exception
+from sentry_sdk import capture_message
 
 lemmatizer = WordNetLemmatizer()
-
+pos_map = {
+    'v': wn.VERB,
+    'n': wn.NOUN,
+    'adj': wn.ADJ,
+    'adv': wn.ADV
+}
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -127,7 +133,7 @@ def get_work_unit(user_type, participant_id=None):
         finished_units = set(WorkUnitContent.objects.filter(
             utterance_id__in=finished_utterances
         ).values_list("work_unit_id", flat=True))
-    
+
         if len(finished_units) == 0:
             # don't return anything, make them do one of the shared work units
             pass
@@ -155,17 +161,17 @@ def get_work_unit(user_type, participant_id=None):
                 ).order_by('id')
             else:
                 return -1, []
-    
-    # participant_id is none until some tokens have been submitted; we use this to identify a first-time annotator, 
+
+    # participant_id is none until some tokens have been submitted; we use this to identify a first-time annotator,
     # and give them one of the practive work units
-    shared_units = [4752, 4755, 4753, 4760, 4769] #, 4763, 4764, 4770, 4761, 4765, 
+    shared_units = [4752, 4755, 4753, 4760, 4769] #, 4763, 4764, 4770, 4761, 4765,
     random_training_id = random.choice(shared_units)
     print('Random training unit: '+str(random_training_id))
     chosen_workunit =  WorkUnit.objects.filter(
                 id = random_training_id).first()
-    
-    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)    
-    
+
+    utterance_ids = WorkUnitContent.objects.filter(work_unit=chosen_workunit).values_list('utterance_id', flat=True)
+
     return_tokens = DerivedTokens.objects.filter(
             utterance_id__in=utterance_ids
         ).order_by('id')
@@ -216,8 +222,8 @@ class ListDerivedTokens(generics.ListAPIView):
             if len(participant_qryset) > 0:
                 self.participant_id = participant_qryset.first().id
                 self.get_existing_progress(self.participant_id)
-            else:                
-                self.work_unit_id, self.queryset = get_work_unit(self.user_type)                
+            else:
+                self.work_unit_id, self.queryset = get_work_unit(self.user_type)
 
         else:
             self.get_existing_progress(self.participant_id)
@@ -249,11 +255,12 @@ class ListSenses(generics.ListAPIView):
 
         pos = request.query_params['pos']
         token_id = request.query_params['token_id']
-        word = lemmatizer.lemmatize(request.query_params['gloss'], POS_MAP[pos])
+        gloss = request.query_params['gloss']
+        word = lemmatizer.lemmatize(gloss, pos_map[pos])
 
         queryset = WordNet30.objects.filter(
-            lemma_names__icontains="'"+word+"'",
-            pos=POS_MAP[pos],
+            Q(lemma_names__icontains="'"+word+"'") | Q(lemma_names__icontains="'"+gloss+"'"),
+            pos=pos_map[pos],
         )
 
         if len(queryset) > 0:
@@ -297,7 +304,8 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 participant=participant_id
             ).latest('id')
             prev_selection_highlight = Tags.objects.filter(
-                token_id=prev_selection_highlight_id.token_id
+                token_id=prev_selection_highlight_id.token_id,
+                participant_id=participant_id
             ).values_list('sense_id', flat=True)
         except:
             prev_selection_highlight = []
@@ -322,7 +330,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
             return Response(data={"error": "Invalid User Type"}, status=status.HTTP_412_PRECONDITION_FAILED)
 
         if "participant" not in data:
-            if participant_from_worker is None:                
+            if participant_from_worker is None:
                 print('participant_from_worker is None')
                 participant_data={
                     'user': None,
@@ -342,7 +350,7 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                     work_unit.participant = new_participant
                 else:
                     print('Error with the serializer')
-                    print(participant_serializer.errors)  
+                    print(participant_serializer.errors)
             else:
                 print('participant_from_worker is not None')
                 data['participant'] = participant_from_worker.id
@@ -415,35 +423,41 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                     )
             )
             serializer = TagsSerializer(data=data_to_save, many=True)
+            print("help")
             if serializer.is_valid():
 
                 # Test to make sure that the sense IDs are reasonable
                 # Especially that they are related to the gloss_with_replacement word
                 # get the pos so we can lemmatize
-                try:
-                    queryset = DerivedTokens.objects.filter(
+
+                queryset = DerivedTokens.objects.filter(
                         id=data['token']).values('part_of_speech')
-                    pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
+                pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
+                gloss = data['gloss_with_replacement']
+                lemmatized_gloss_with_replacement = lemmatizer.lemmatize(gloss,
+                         pos_map[pos])
 
-                    lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
-                         pos_map[pos])                
+                queryset = WordNet30.objects.filter(
+                    Q(lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'") | Q(lemma_names__icontains="'"+gloss+"'"),
+                    pos=pos_map[pos],
+                )
 
-                    queryset = WordNet30.objects.filter(
-                        lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
-                        pos=pos_map[pos],
-                    ).values('id')
-                    ids_for_wn_senses = [sense['id'] for sense in queryset] + [117667, 117666]
+                ids_for_wn_senses = [sense.id for sense in queryset] + [117667, 117666]
 
-                    for sense_id_to_be_saved in sense_ids_to_be_saved:
-                        if sense_id_to_be_saved not in ids_for_wn_senses:
-                            print('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
-                            raise ValueError('Sense mismatch detected')
-                        else:                            
-                            print('No sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
-                except Exception as e:
-                    capture_exception(e)                            
+                bad_sense_ids = []
+                for sense_id_to_be_saved in sense_ids_to_be_saved:
+                    if sense_id_to_be_saved not in ids_for_wn_senses:
+                        print('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+                        bad_sense_ids.append(sense_id_to_be_saved)
 
-                serializer.save()
-                return Response(data={"participant_id": data["participant"]}, status=status.HTTP_202_ACCEPTED)
-            else:
-                return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                        #raise ValueError('Sense mismatch detected')
+                    else:
+                        print('No sense mismatch detected for '+str(data['participant'])+', token '+str(data['token']))
+
+                if len(bad_sense_ids)==0:
+                    serializer.save()
+                    return Response(data={"participant_id": data["participant"]}, status=status.HTTP_202_ACCEPTED)
+
+                else:
+                    capture_message('Sense mismatch detected for '+str(data['participant'])+', token '+str(data['token'])+', senses '+ str(bad_sense_ids))
+                    return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
