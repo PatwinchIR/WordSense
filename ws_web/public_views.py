@@ -4,6 +4,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.db.models import Q
 
 from ws_web.models import DerivedTokens, Tags, WordNet30, Participant, WorkUnit, WorkUnitContent
 from ws_web.serializers import DerivedTokensSerializer, TagsSerializer, \
@@ -254,11 +255,12 @@ class ListSenses(generics.ListAPIView):
 
         pos = request.query_params['pos']
         token_id = request.query_params['token_id']
-        word = lemmatizer.lemmatize(request.query_params['gloss'], POS_MAP[pos])
+        gloss = request.query_params['gloss']
+        word = lemmatizer.lemmatize(gloss, pos_map[pos])
 
         queryset = WordNet30.objects.filter(
-            lemma_names__icontains="'"+word+"'",
-            pos=POS_MAP[pos],
+            Q(lemma_names__icontains="'"+word+"'") | Q(lemma_names__icontains="'"+gloss+"'"),
+            pos=pos_map[pos],
         )
 
         if len(queryset) > 0:
@@ -302,7 +304,8 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 participant=participant_id
             ).latest('id')
             prev_selection_highlight = Tags.objects.filter(
-                token_id=prev_selection_highlight_id.token_id
+                token_id=prev_selection_highlight_id.token_id,
+                participant_id=participant_id
             ).values_list('sense_id', flat=True)
         except:
             prev_selection_highlight = []
@@ -430,16 +433,16 @@ class ListCreateAnnotation(generics.ListCreateAPIView):
                 queryset = DerivedTokens.objects.filter(
                         id=data['token']).values('part_of_speech')
                 pos = [x['part_of_speech'].split(':')[0] for x in queryset][0]
-
-                lemmatized_gloss_with_replacement = lemmatizer.lemmatize(data['gloss_with_replacement'],
+                gloss = data['gloss_with_replacement']
+                lemmatized_gloss_with_replacement = lemmatizer.lemmatize(gloss,
                          pos_map[pos])
 
                 queryset = WordNet30.objects.filter(
-                        lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'",
-                        pos=pos_map[pos],
-                    ).values('id')
+                    Q(lemma_names__icontains="'"+lemmatized_gloss_with_replacement+"'") | Q(lemma_names__icontains="'"+gloss+"'"),
+                    pos=pos_map[pos],
+                )
 
-                ids_for_wn_senses = [sense['id'] for sense in queryset] + [117667, 117666]
+                ids_for_wn_senses = [sense.id for sense in queryset] + [117667, 117666]
 
                 bad_sense_ids = []
                 for sense_id_to_be_saved in sense_ids_to_be_saved:
