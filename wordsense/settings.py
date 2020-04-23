@@ -15,6 +15,7 @@ import django_heroku
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,7 +27,7 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY'] if os.environ.get(
     'WORDSENSE_ENV') == 'prod' else "a key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['lcd-wordsense.herokuapp.com', '127.0.0.1']
 
@@ -100,6 +101,13 @@ WSGI_APPLICATION = 'wordsense.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+if os.environ.get("WORDSENSE_ENV") == 'dev':
+    print("Dev Env")
+elif os.environ.get("WORDSENSE_ENV") == 'prod':
+    print("prod env")
+else:
+    print("no env specified")
+
 
 DATABASES = {
     'default': django_heroku.dj_database_url.config() if os.environ.get("WORDSENSE_ENV") == 'prod' else {
@@ -116,6 +124,10 @@ DATABASES = {
         'HOST': os.environ.get('CHILDESDB_HOST')
     }
 }
+
+print(DATABASES)
+
+#import pdb; pdb.set_trace()
 
 DATABASE_ROUTERS = ['ws_web.db_routers.DatabaseRouter']
 
@@ -157,7 +169,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'build/static')]
 
-django_heroku.settings(locals())
+if os.environ.get("WORDSENSE_ENV") == 'prod':
+    django_heroku.settings(locals())
 
 sentry_sdk.init(
     dsn=os.environ['WS_SENTRY_DSN'],
