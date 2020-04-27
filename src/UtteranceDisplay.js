@@ -42,6 +42,7 @@ class UtteranceDisplay extends Component {
   processUtterances(rawUtterances) {
     const tags_set = new Set(rawUtterances.tags_set);
     const utterances = rawUtterances.data.reduce((utterances, item) => {
+
       if (!utterances[item.utterance_id]) {
         utterances[item.utterance_id] = {
           speaker_role: item.speaker_role,
@@ -62,8 +63,10 @@ class UtteranceDisplay extends Component {
           ? "TAGGABLE"
           : "UNTAGGABLE"
       });
+
       return utterances;
     }, {});
+    // console.log(utterances);
     const results = [];
     const emptyUtterance = {
       speaker_role: "",
@@ -87,6 +90,7 @@ class UtteranceDisplay extends Component {
         );
         results.push(utterances[v]);
       });
+
     results.forEach((utterance, index) => {
       for (let i = index + 1; i < results.length; i++) {
         if (results[i].tagable) {
@@ -100,7 +104,61 @@ class UtteranceDisplay extends Component {
           break;
         }
       }
+
     });
+
+    var done = false;
+
+    for (let i = 0; i < results.length; i++) {
+      for (let x = 0; x < results[i].id_gloss_pos.length; x++) {
+        done = false;
+
+        for (let y = x + 1; y < results[i].id_gloss_pos.length; y++) {
+
+          if (results[i].id_gloss_pos[y].requires_tags) {
+            results[i].id_gloss_pos[x].forwardToken = [i, y]; //results[i].id_gloss_pos[y].token_id;
+            done = true;
+            break;
+          }
+        }
+
+        if (done === false && (i + results[i].forwardStep) < results.length) {
+          for (let y = 0; y < results[i + results[i].forwardStep].id_gloss_pos.length; y++) {
+
+            if (results[i + results[i].forwardStep].id_gloss_pos[y].requires_tags) {
+              results[i].id_gloss_pos[x].forwardToken = [i + results[i].forwardStep, y]; //results[i + results[i].forwardStep].id_gloss_pos[y].token_id;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+
+    for (let i = results.length - 1; i >= 0; i--) {
+      for (let x = results[i].id_gloss_pos.length - 1; x >= 0; x--) {
+        done = false;
+
+        for (let y = x - 1; y >= 0; y--) {
+          if (results[i].id_gloss_pos[y].requires_tags) {
+            results[i].id_gloss_pos[x].backwardToken = [i, y]; //results[i].id_gloss_pos[y].token_id;
+            done = true;
+            break;
+          }
+        }
+
+        if (done === false && (i - results[i].backwardStep) >= 0) {
+          for (let y = results[i - results[i].backwardStep].id_gloss_pos.length - 1; y >= 0; y--) {
+
+            if (results[i - results[i].backwardStep].id_gloss_pos[y].requires_tags) {
+              results[i].id_gloss_pos[x].backwardToken =  [i - results[i].backwardStep, y]; //results[i - results[i].backwardStep].id_gloss_pos[y].token_id;
+              break;
+            }
+          }
+        }
+      }
+    }
+
     return results;
   }
 
@@ -148,6 +206,7 @@ class UtteranceDisplay extends Component {
                     inputUtteranceIndex: 0,
                     confirmed: this.props.isPublic
                 });
+                // console.log(utterances);
             }
         )
         .catch(error => {
@@ -174,47 +233,90 @@ class UtteranceDisplay extends Component {
   }
 
   keyHandling(e) {
+
+    // var nextWord = undefined;
+    // var currentUtteranceIndex = this.state.displayFocusIndex;
+    // var currentTokenIndex = this.props.tokenIndex;
+    //
+    // // console.log("currentUtteranceIndex:" + currentUtteranceIndex);
+    // // console.log("currentTokenIndex:" + currentTokenIndex);
+    //
+    // if (this.state.utterances[currentUtteranceIndex] !== undefined) {
+    //   while(nextWord === undefined) {
+    //     var currentUtterance = this.state.utterances[currentUtteranceIndex];
+    //
+    //     if (e.keyCode === 40) { // down arrow key
+    //       currentTokenIndex++;
+    //       if (currentTokenIndex > (currentUtterance.id_gloss_pos.length - 1)) {
+    //         currentUtteranceIndex += currentUtterance.forwardStep;
+    //         currentUtterance = this.state.utterances[currentUtteranceIndex];
+    //         currentTokenIndex = 0;
+    //       }
+    //     } else if (e.keyCode === 38) { // up arrow key
+    //       currentTokenIndex--;
+    //       if (currentTokenIndex < 0) {
+    //         currentUtteranceIndex -= currentUtterance.backwardStep;
+    //         currentUtterance = this.state.utterances[currentUtteranceIndex];
+    //         currentTokenIndex = currentUtterance.id_gloss_pos.length - 1;
+    //       }
+    //     }
+    //
+    //     if (currentUtterance.id_gloss_pos[currentTokenIndex].tag_status === "TAGGABLE") {
+    //       nextWord = currentUtterance.id_gloss_pos[currentTokenIndex];
+    //       // console.log("currentUtteranceIndex:" + currentUtteranceIndex);
+    //       // console.log("currentTokenIndex:" + currentTokenIndex);
+    //     }
+    //   }
+
+    var nextUtterance = undefined;
     var nextWord = undefined;
+    var nextUtteranceIndex = undefined;
+    var nextTokenIndex = undefined;
     var currentUtteranceIndex = this.state.displayFocusIndex;
     var currentTokenIndex = this.props.tokenIndex;
-    if (this.state.utterances[currentUtteranceIndex] !== undefined) {
-      while(nextWord === undefined) {
-        var currentUtterance = this.state.utterances[currentUtteranceIndex];
+    var currentUtterance = this.state.utterances[currentUtteranceIndex];
 
-        if (e.keyCode === 40) { // down arrow key
-          currentTokenIndex++;
-          if (currentTokenIndex > (currentUtterance.id_gloss_pos.length - 1)) {
-            currentUtteranceIndex += currentUtterance.forwardStep;
-            currentUtterance = this.state.utterances[currentUtteranceIndex];
-            currentTokenIndex = 0;
-          }
-        } else if (e.keyCode === 38) { // up arrow key
-          currentTokenIndex--;
-          if (currentTokenIndex < 0) {
-            currentUtteranceIndex -= currentUtterance.backwardStep;
-            currentUtterance = this.state.utterances[currentUtteranceIndex];
-            currentTokenIndex = currentUtterance.id_gloss_pos.length - 1;
-          }
-        }
+    if (currentUtterance !== undefined) {
 
-        if (currentUtterance.id_gloss_pos[currentTokenIndex].tag_status === "TAGGABLE") {
-          nextWord = currentUtterance.id_gloss_pos[currentTokenIndex];
+      if (currentTokenIndex < 0 || currentTokenIndex >= currentUtterance.id_gloss_pos.length) {
+        currentTokenIndex = 0;
+      }
+
+      if (e.keyCode === 40) { // down arrow key
+        if (currentUtterance.id_gloss_pos.length > 0 && currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken !== undefined) {
+          nextUtteranceIndex = currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken[0];
+          nextTokenIndex = currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken[1];
+          nextUtterance = this.state.utterances[nextUtteranceIndex];
+          nextWord = nextUtterance.id_gloss_pos[nextTokenIndex];
+        } else {
+          return;
         }
+      } else if (e.keyCode === 38) { // up arrow key
+        if (currentUtterance.id_gloss_pos.length > 0 && currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken !== undefined) {
+          nextUtteranceIndex = currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken[0];
+          nextTokenIndex = currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken[1];
+          nextUtterance = this.state.utterances[nextUtteranceIndex];
+          nextWord = nextUtterance.id_gloss_pos[nextTokenIndex];
+        } else {
+          return;
+        }
+      } else {
+        return;
       }
 
       this.props.handleGlossClick(
         nextWord,
-        currentUtteranceIndex,
-        currentTokenIndex,
+        nextUtteranceIndex,
+        nextTokenIndex,
         this.state.workUnitId,
         this.props.isPublic ? this.state.participantId : this.props.participantId
       );
 
       this.setDisplayFocus(
-        this.state.utterances[currentUtteranceIndex],
-        currentUtteranceIndex,
+        this.state.utterances[nextUtteranceIndex],
+        nextUtteranceIndex,
       );
-      this.setState({inputUtteranceIndex: currentUtteranceIndex - CONTEXT_LENGTH});
+      this.setState({inputUtteranceIndex: nextUtteranceIndex - CONTEXT_LENGTH});
     }
   }
 
@@ -390,12 +492,32 @@ class UtteranceDisplay extends Component {
                   value="backward"
                   displayFocusUtterance={this.state.displayFocusUtterance}
                   displayFocusIndex={this.state.displayFocusIndex}
+
+                  setDisplayFocus={this.setDisplayFocus}
+                  handleGlossClick={this.props.handleGlossClick}
+                  currentUtteranceIndex = {this.state.displayFocusIndex}
+                  currentTokenIndex = {this.props.tokenIndex}
+                  utterances = {this.state.utterances}
+                  workUnitId={this.state.workUnitId}
+                  participantId={this.props.isPublic
+                                  ? this.state.participantId
+                                  : this.props.participantId}
                 />
 
                 <ButtonDiv
                   value="forward"
                   displayFocusUtterance={this.state.displayFocusUtterance}
                   displayFocusIndex={this.state.displayFocusIndex}
+
+                  setDisplayFocus={this.setDisplayFocus}
+                  handleGlossClick={this.props.handleGlossClick}
+                  currentUtteranceIndex = {this.state.displayFocusIndex}
+                  currentTokenIndex = {this.props.tokenIndex}
+                  utterances = {this.state.utterances}
+                  workUnitId={this.state.workUnitId}
+                  participantId={this.props.isPublic
+                                  ? this.state.participantId
+                                  : this.props.participantId}
                 />
               </div>
             </CarouselProvider>

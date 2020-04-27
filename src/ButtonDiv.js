@@ -1,6 +1,13 @@
 import React, { Component } from "react";
 import { WithStore } from "pure-react-carousel";
 import { Button } from "@blueprintjs/core";
+// import {
+//   CONTEXT_LENGTH,
+//   UTTERANCE_TO_DISPLAY,
+//   BASE_URL,
+//   PUBLIC_URL
+// } from "./Constants";
+
 
 class ButtonDiv extends Component {
   constructor(props) {
@@ -10,20 +17,99 @@ class ButtonDiv extends Component {
   }
 
   handleOnMouseDown() {
+    var nextUtterance = undefined;
+    var nextWord = undefined;
+    var nextUtteranceIndex = undefined;
+    var nextTokenIndex = undefined;
+    var currentUtteranceIndex = this.props.currentUtteranceIndex;
+    var currentTokenIndex = this.props.currentTokenIndex;
+    var currentUtterance = this.props.utterances[currentUtteranceIndex];
+
     if (this.props.value === "forward") {
-      const maxSlide = this.props.totalSlides - this.props.visibleSlides;
-      const newCurrentSlide = Math.min(
-        this.props.currentSlide + this.props.displayFocusUtterance.forwardStep,
-        maxSlide
-      );
-      this.props.carouselStore.setStoreState({ currentSlide: newCurrentSlide });
-    } else {
-      const newCurrentSlide = Math.max(
-        this.props.currentSlide - this.props.displayFocusUtterance.backwardStep,
-        0
-      );
-      this.props.carouselStore.setStoreState({ currentSlide: newCurrentSlide });
+
+      if (currentUtterance !== undefined) {
+
+        if (currentTokenIndex < 0 || currentTokenIndex >= currentUtterance.id_gloss_pos.length) {
+          currentTokenIndex = 0;
+        }
+
+        if (currentUtterance.id_gloss_pos.length > 0 && currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken !== undefined) {
+          nextUtteranceIndex = currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken[0];
+          nextTokenIndex = currentUtterance.id_gloss_pos[currentTokenIndex].forwardToken[1];
+          nextUtterance = this.props.utterances[nextUtteranceIndex];
+          nextWord = nextUtterance.id_gloss_pos[nextTokenIndex];
+        } else {
+          return;
+        }
+
+        this.props.handleGlossClick(
+          nextWord,
+          nextUtteranceIndex,
+          nextTokenIndex,
+          this.props.workUnitId,
+          this.props.participantId,
+        );
+
+        this.props.setDisplayFocus(
+          this.props.utterances[nextUtteranceIndex],
+          nextUtteranceIndex,
+        );
+        // this.props.setState({inputUtteranceIndex: nextUtteranceIndex - CONTEXT_LENGTH});
+
+        const maxSlide = this.props.totalSlides - this.props.visibleSlides;
+        const change = nextUtteranceIndex - currentUtteranceIndex;
+        const newCurrentSlide = Math.min(
+          this.props.currentSlide + change,
+          maxSlide
+        );
+        this.props.carouselStore.setStoreState({ currentSlide: newCurrentSlide });
+
+      }
+
+
+
+    } else if (this.props.value === "backward"){
+
+      if (currentUtterance !== undefined) {
+
+        if (currentTokenIndex < 0 || currentTokenIndex >= currentUtterance.id_gloss_pos.length) {
+          currentTokenIndex = 0;
+        }
+
+        if (currentUtterance.id_gloss_pos.length > 0 && currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken !== undefined) {
+          nextUtteranceIndex = currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken[0];
+          nextTokenIndex = currentUtterance.id_gloss_pos[currentTokenIndex].backwardToken[1];
+          nextUtterance = this.props.utterances[nextUtteranceIndex];
+          nextWord = nextUtterance.id_gloss_pos[nextTokenIndex];
+        } else {
+          return;
+        }
+
+        this.props.handleGlossClick(
+          nextWord,
+          nextUtteranceIndex,
+          nextTokenIndex,
+          this.props.workUnitId,
+          this.props.participantId,
+        );
+
+        this.props.setDisplayFocus(
+          this.props.utterances[nextUtteranceIndex],
+          nextUtteranceIndex,
+        );
+        // this.props.setState({inputUtteranceIndex: nextUtteranceIndex - CONTEXT_LENGTH});
+
+        const change = nextUtteranceIndex - currentUtteranceIndex;
+        const newCurrentSlide = Math.max(
+          this.props.currentSlide + change,
+          0
+        );
+        this.props.carouselStore.setStoreState({ currentSlide: newCurrentSlide });
+
+      }
     }
+
+
   }
 
   render() {
