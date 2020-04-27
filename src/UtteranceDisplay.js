@@ -278,7 +278,7 @@ class UtteranceDisplay extends Component {
 
     if (currentUtterance !== undefined) {
 
-      if (currentTokenIndex < 0 || currentTokenIndex >= currentUtterance.id_gloss_pos.length) {
+      if (currentTokenIndex < 0 || currentTokenIndex >= currentUtterance.id_gloss_pos.length || currentTokenIndex === undefined) {
         currentTokenIndex = 0;
       }
 
