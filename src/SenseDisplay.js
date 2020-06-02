@@ -63,6 +63,7 @@ class SenseDisplay extends Component {
 
     this.handleSensesChange = this.handleSensesChange.bind(this);
     this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    this.saveSenses = this.saveSenses.bind(this);
     this.handleReset = this.handleReset.bind(this);
     this.handleWrongPosOpen = this.handleWrongPosOpen.bind(this);
     this.handleWrongPosClose = this.handleWrongPosClose.bind(this);
@@ -161,6 +162,7 @@ class SenseDisplay extends Component {
       }
     }
     if (this.props.transcriptId !== nextProps.transcriptId) {
+      // Automatic saving on change of transcript.
       this.setState({
         senses: []
       });
@@ -169,10 +171,16 @@ class SenseDisplay extends Component {
       this.props.idGlossPos.token_id !== nextProps.idGlossPos.token_id &&
       nextProps.idGlossPos.token_id !== undefined
     ) {
+      // Automatic saving on change of clicked tokens.
+      if (this.props.idGlossPos.token_id !== undefined &&
+        this.state.saveStatus==="SAVE" &&
+        this.state.selectedSenses.length !== 0)  this.saveSenses();
+
       this.setState({
         selectedSenses: [],
         isWrongPosAlertOpen: false,
-        disabledSenseSelection: false
+        disabledSenseSelection: false,
+        selectedSenses: []
       });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
@@ -217,8 +225,7 @@ class SenseDisplay extends Component {
     }
   }
 
-  handleFormSubmit(event) {
-    event.preventDefault();
+  saveSenses() {
     fetch(`${BASE_URL}/api/${this.props.isPublic ? PUBLIC_URL : ""}save/`, {
       method: "POST",
       headers: {
@@ -297,6 +304,12 @@ class SenseDisplay extends Component {
         );
       })
       .catch(error => console.log(error));
+
+  }
+
+  handleFormSubmit(event) {
+    event.preventDefault();
+    this.saveSenses();
   }
 
   handleReset() {

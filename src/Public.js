@@ -206,6 +206,7 @@ class Public extends Component {
             workerId={this.state.workerId}
             userType={this.state.userType}
             numTagsProvidedNext={this.state.numTagsProvidedNext}
+            tokenIndex={this.state.tokenIndex}
           />
         </div>,
         <div id="lower-container">

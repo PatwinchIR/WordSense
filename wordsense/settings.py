@@ -157,10 +157,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'build/static')]
 
-django_heroku.settings(locals())
+if os.environ.get("WORDSENSE_ENV") == 'prod':
+    django_heroku.settings(locals())
 
 sentry_sdk.init(
-    dsn=os.environ['WS_SENTRY_DSN'],
+    dsn=os.environ.get('WS_SENTRY_DSN', ''),
     integrations=[DjangoIntegration()],
 
     # If you wish to associate users to errors (assuming you are using
