@@ -179,7 +179,8 @@ class SenseDisplay extends Component {
       this.setState({
         selectedSenses: [],
         isWrongPosAlertOpen: false,
-        disabledSenseSelection: false
+        disabledSenseSelection: false,
+        selectedSenses: []
       });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
