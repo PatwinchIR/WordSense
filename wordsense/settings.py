@@ -161,7 +161,7 @@ if os.environ.get("WORDSENSE_ENV") == 'prod':
     django_heroku.settings(locals())
 
 sentry_sdk.init(
-    dsn=os.environ['WS_SENTRY_DSN'],
+    dsn=os.environ.get('WS_SENTRY_DSN', ''),
     integrations=[DjangoIntegration()],
 
     # If you wish to associate users to errors (assuming you are using
