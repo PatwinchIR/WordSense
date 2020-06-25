@@ -28,7 +28,8 @@ class UtteranceDisplay extends Component {
       inputUtteranceIndex: 0,
       workerId: "unset",
       workUnitId: -1,
-      userType: undefined
+      userType: undefined,
+      autoSaveColorChange: false
     };
 
     this.loadUtterancesForSelectedTranscript = this.loadUtterancesForSelectedTranscript.bind(
@@ -338,6 +339,7 @@ class UtteranceDisplay extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    this.setState({autoSaveColorChange: false});
     if (this.props.isLoggedIn !== nextProps.isLoggedIn) {
       if (!nextProps.isLoggedIn) {
         this.setState({
@@ -389,7 +391,7 @@ class UtteranceDisplay extends Component {
       token.tag_status = "TAGGED";
       utterance.id_gloss_pos[nextProps.tokenIndexForTagStatusChange] = token;
       utterances[nextProps.utteranceIndexForTagStatusChange] = utterance;
-      this.setState({ utterances: utterances });
+      this.setState({ utterances: utterances, autoSaveColorChange: true });
     }
     if (
       this.props.inputUtteranceIndex !== nextProps.inputUtteranceIndex &&
@@ -481,6 +483,7 @@ class UtteranceDisplay extends Component {
                       participantId={this.props.isPublic
                                       ? this.state.participantId
                                       : this.props.participantId}
+                      autoSaveColorChange={this.state.autoSaveColorChange}
                     />
                   </Slide>
                 ))}

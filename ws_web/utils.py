@@ -36,7 +36,7 @@ USER_TYPE_TAGGING_THRESHOLD = {
 
 # cypher_inventory = eval(os.environ['WORDSENSE_CYPHER_INVENTORY'])
 # offset = int(os.environ['WORDSENSE_CYPHER_OFFSET'])
-cypher_key = os.environ['WORDSENSE_CYPHER_KEY']
+cypher_key = os.environ.get('WORDSENSE_CYPHER_KEY', "")
 
 
 # def encode_user_identifier(user_identifier, char_inventory, offset):
