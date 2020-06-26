@@ -519,6 +519,22 @@ class UtteranceDisplay extends Component {
                                   ? this.state.participantId
                                   : this.props.participantId}
                 />
+
+                <ButtonDiv
+                value="transcript"
+                displayFocusUtterance={this.state.displayFocusUtterance}
+                displayFocusIndex={this.state.displayFocusIndex}
+
+                setDisplayFocus={this.setDisplayFocus}
+                handleGlossClick={this.props.handleGlossClick}
+                currentUtteranceIndex = {this.state.displayFocusIndex}
+                currentTokenIndex = {this.props.tokenIndex}
+                utterances = {this.state.utterances}
+                workUnitId={this.state.workUnitId}
+                participantId={this.props.isPublic
+                                ? this.state.participantId
+                                : this.props.participantId}
+                />
               </div>
             </CarouselProvider>
           )}

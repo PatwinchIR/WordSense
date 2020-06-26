@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 import { WithStore } from "pure-react-carousel";
 import { Button } from "@blueprintjs/core";
+import { Drawer } from "@blueprintjs/core";
+import { Position } from "@blueprintjs/core";
+
+
 // import {
 //   CONTEXT_LENGTH,
 //   UTTERANCE_TO_DISPLAY,
@@ -12,9 +16,50 @@ import { Button } from "@blueprintjs/core";
 class ButtonDiv extends Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      isOpen: false,
+      position: Position.LEFT,
+      style: {overflowY: 'auto'},
+    };
     this.handleOnMouseDown = this.handleOnMouseDown.bind(this);
+    this.handleDrawer = this.handleDrawer.bind(this);
   }
+
+  handleDrawer() {
+    const utterances = this.props.utterances;
+    var fontstyle = {fontSize: '18px'};
+    var backgroundc = {backgroundColor: '#FFFF00'}
+    var bolding = {fontWeight: 'bold'};
+    const full_trans =
+    <div style={fontstyle}>
+      {utterances.map((utterance, index) => {
+        if (this.props.currentUtteranceIndex === index)
+          return <div style={backgroundc}>
+                    {utterance.speaker_role}
+                    {utterance.speaker_role === "" ? "" : ": "}
+                    {utterance.id_gloss_pos.map((idGlossPos, gloss_index) => {
+                      if (this.props.currentTokenIndex === gloss_index)
+                        return <span id="test" style={bolding}>{idGlossPos.gloss} </span>
+                      return <span>{idGlossPos.gloss} </span>
+                    })}
+                  </div>
+        return <div>
+                  {utterance.speaker_role}
+                  {utterance.speaker_role === "" ? "" : ": "}
+                  {utterance.id_gloss_pos.map(idGlossPos => (
+                    <span>{idGlossPos.gloss} </span>
+                  ))}
+                </div>
+      })}
+    </div>;
+
+    if (this.props.currentUtteranceIndex) {
+      return full_trans;
+    } else {
+      return <p>"Error"</p>;
+    }
+  }
+
 
   handleOnMouseDown() {
     var nextUtterance = undefined;
@@ -66,8 +111,6 @@ class ButtonDiv extends Component {
 
       }
 
-
-
     } else if (this.props.value === "backward"){
 
       if (currentUtterance !== undefined) {
@@ -113,26 +156,57 @@ class ButtonDiv extends Component {
   }
 
   render() {
-    return this.props.value === "forward" ? (
-      <Button
-        onClick={this.handleOnMouseDown}
-        rightIcon="arrow-right"
-        intent="success"
-        text="Next Utterance"
-      >
-        {this.props.children}
-      </Button>
-    ) : (
-      <Button
-        onClick={this.handleOnMouseDown}
-        icon="arrow-left"
-        intent="warning"
-        text="Previous Utterance"
-      >
-        {this.props.children}
-      </Button>
-    );
+
+
+    if (this.props.value === "forward") {
+      return (
+        <Button
+          onClick={this.handleOnMouseDown}
+          rightIcon="arrow-right"
+          intent="success"
+          text="Next Utterance"
+        >
+          {this.props.children}
+        </Button>
+      );
+    } else if (this.props.value === "backward") {
+      return (
+        <Button
+          onClick={this.handleOnMouseDown}
+          icon="arrow-left"
+          intent="warning"
+          text="Previous Utterance"
+        >
+          {this.props.children}
+        </Button>
+      );
+    } else if (this.props.value === "transcript") {
+      return (
+        <div>
+          <Button
+            onClick={this.handleOpen}
+            icon="document-open"
+            intent="primary"
+            text="Full Transcript"
+          >
+          </Button>
+          <Drawer
+              icon="document-open"
+              onClose={this.handleClose}
+              title="Full Transcript"
+              size="48%"
+              {...this.state}
+          >
+          {this.handleDrawer()}
+
+          </Drawer>
+        </div>
+      );
+    }
+
   }
+  handleOpen = () => this.setState({ isOpen: true });
+  handleClose = () => this.setState({ isOpen: false });
 }
 
 export default WithStore(ButtonDiv, state => ({
