@@ -18,15 +18,17 @@ USER_TYPES = {
     "2": "in_lab_staff",
     "3": "subject_pool",
     "4": "berkeley_ra_pool",
-    "5": "berkeley_rpp"
+    "5": "berkeley_rpp",
+    "6": "princeton_rpp"
 }
-
+#are we both storing as an environment var and creating it here?
 USER_TYPE_TAGGING_THRESHOLD = {
     "mechanical_turk": int(os.environ.get("WORDSENSE_MECHANICAL_TURK_TAGS_THRESHOLD", 30)),
     "in_lab_staff": int(os.environ.get("WORDSENSE_IN_LAB_STAFF_TAGS_THRESHOLD", 0)), # Not used
     "subject_pool": int(os.environ.get("WORDSENSE_SUBJECT_POOL_TAGS_THRESHOLD", 24 * 9)), # 24 * 9 in production
     "berkeley_ra_pool": int(os.environ.get('WORDSENSE_RA_POOL_TAGS_THRESHOLD',1000000)),
-    "berkeley_rpp": int(os.environ.get("WORDSENSE_RPP_TAGS_THRESHOLD", 24 * 4))
+    "berkeley_rpp": int(os.environ.get("WORDSENSE_RPP_TAGS_THRESHOLD", 24 * 4)), #96
+    "princeton_rpp": int(os.environ.get("WORDSENSE_PRINCETON_TAGS_THRESHOLD", 24 * 8)) # 192
 }
 
 # os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
