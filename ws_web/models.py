@@ -24,6 +24,7 @@ class Participant(models.Model):
         ("subject_pool", "Subject Pool"),
         ("berkeley_ra_pool", "Berkely RAs"),
         ("berkeley_rpp", "Berkeley RPP"),
+        ("princeton_rpp", "Princeton RPP"),
 
     )
 
