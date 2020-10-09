@@ -25,7 +25,8 @@ class Participant(models.Model):
         ("berkeley_ra_pool", "Berkely RAs"),
         ("berkeley_rpp", "Berkeley RPP"),
         ("princeton_rpp", "Princeton RPP"),
-
+        ("edinburgh_two_hour_rpp", "Edinburgh 2 Hour RPP"),
+        ("berkeley_two_hour_rpp", "Berkeley 2 Hour RPP"),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
