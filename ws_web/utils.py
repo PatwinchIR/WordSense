@@ -19,7 +19,9 @@ USER_TYPES = {
     "3": "subject_pool",
     "4": "berkeley_ra_pool",
     "5": "berkeley_rpp",
-    "6": "princeton_rpp"
+    "6": "princeton_rpp",
+    "7": "edinburgh_two_hour_rpp",
+    "8": "berkeley_two_hour_rpp",
 }
 #are we both storing as an environment var and creating it here?
 USER_TYPE_TAGGING_THRESHOLD = {
