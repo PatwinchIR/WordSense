@@ -31,7 +31,7 @@ class Participant(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     user_type = models.CharField(
-        max_length=20, choices=USER_TYPE, default="in_lab_staff")
+        max_length=50, choices=USER_TYPE, default="in_lab_staff")
     browser_display_lang = models.CharField(
         max_length=20, blank=True, null=True)
     browser_user_agent = models.TextField()
