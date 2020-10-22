@@ -23,14 +23,16 @@ USER_TYPES = {
     "7": "edinburgh_two_hour_rpp",
     "8": "berkeley_two_hour_rpp",
 }
-#are we both storing as an environment var and creating it here?
+#Get the number of tags that the participant needs to complete either from an environment variable or defaulting to 2nd value for each
 USER_TYPE_TAGGING_THRESHOLD = {
     "mechanical_turk": int(os.environ.get("WORDSENSE_MECHANICAL_TURK_TAGS_THRESHOLD", 30)),
     "in_lab_staff": int(os.environ.get("WORDSENSE_IN_LAB_STAFF_TAGS_THRESHOLD", 0)), # Not used
     "subject_pool": int(os.environ.get("WORDSENSE_SUBJECT_POOL_TAGS_THRESHOLD", 24 * 9)), # 24 * 9 in production
     "berkeley_ra_pool": int(os.environ.get('WORDSENSE_RA_POOL_TAGS_THRESHOLD',1000000)),
     "berkeley_rpp": int(os.environ.get("WORDSENSE_RPP_TAGS_THRESHOLD", 24 * 4)), #96
-    "princeton_rpp": int(os.environ.get("WORDSENSE_PRINCETON_TAGS_THRESHOLD", 24 * 8)) # 192
+    "princeton_rpp": int(os.environ.get("WORDSENSE_PRINCETON_TAGS_THRESHOLD", 24 * 8)), # 192
+    "edinburgh_two_hour_rpp": int(os.environ.get("WORDSENSE_EDINBURGH_2HR_TAGS_THRESHOLD", 24 * 8)), # 192
+    "berkeley_two_hour_rpp": int(os.environ.get("WORDSENSE_BERKELEY_2HR_TAGS_THRESHOLD", 24 * 8)) # 192
 }
 
 # os.environ['WORDSENSE_CYPHER_INVENTORY'] = "list(string.ascii_letters + string.digits)[::-1]"
