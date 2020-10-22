@@ -10,11 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='tags',
-            name='timestamp',
-            field=models.DateTimeField(null=True),
-        ),
+        # migrations.AddField(
+        #     model_name='tags',
+        #     name='timestamp',
+        #     field=models.DateTimeField(null=True),
+        # ),
         migrations.AlterField(
             model_name='participant',
             name='user_type',
