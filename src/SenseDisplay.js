@@ -163,6 +163,8 @@ class SenseDisplay extends Component {
     }
     if (this.props.transcriptId !== nextProps.transcriptId) {
       // Automatic saving on change of transcript.
+      this.props.changeTagStatus(this.props.utteranceIndex, this.props.tokenIndex);
+      this.saveSenses(true);
       this.setState({
         senses: []
       });
@@ -174,13 +176,16 @@ class SenseDisplay extends Component {
       // Automatic saving on change of clicked tokens.
       if (this.props.idGlossPos.token_id !== undefined &&
         this.state.saveStatus==="SAVE" &&
-        this.state.selectedSenses.length !== 0)  this.saveSenses();
+        this.state.selectedSenses.length !== 0)  {
+
+        this.props.changeTagStatus(this.props.utteranceIndex, this.props.tokenIndex);
+        this.saveSenses(true);
+      }
 
       this.setState({
         selectedSenses: [],
         isWrongPosAlertOpen: false,
-        disabledSenseSelection: false,
-        selectedSenses: []
+        disabledSenseSelection: false
       });
       this.loadSensesExamplesForGloss(
         nextProps.idGlossPos.token_id,
@@ -225,7 +230,7 @@ class SenseDisplay extends Component {
     }
   }
 
-  saveSenses() {
+  saveSenses(autoSave) {
     fetch(`${BASE_URL}/api/${this.props.isPublic ? PUBLIC_URL : ""}save/`, {
       method: "POST",
       headers: {
@@ -298,10 +303,11 @@ class SenseDisplay extends Component {
           saveStatus: "SAVED",
           participantId: resData["participant_id"]
         });
-        this.props.changeTagStatus(
-          this.props.utteranceIndex,
-          this.props.tokenIndex
-        );
+        if (autoSave !== true) {
+          this.props.changeTagStatus(
+            this.props.utteranceIndex,
+            this.props.tokenIndex
+        )}
       })
       .catch(error => console.log(error));
 
@@ -309,7 +315,7 @@ class SenseDisplay extends Component {
 
   handleFormSubmit(event) {
     event.preventDefault();
-    this.saveSenses();
+    this.saveSenses(false);
   }
 
   handleReset() {
